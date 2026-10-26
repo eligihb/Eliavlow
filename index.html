@@ -3,46 +3,725 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>מערכת ניהול תיקים וגבייה משפטית | משרד עורכי דין</title>
+  <title>ניהול תיקי גבייה מוניציפלית וחדל"פ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
-    body { font-family: 'Assistant', sans-serif; background-color: #f1f5f9; }
-    .tab-active { border-bottom: 3px solid #1e40af; color: #1e40af; font-weight: 700; }
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Heebo', sans-serif; background-color: #f1f5f9; }
+    .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700; }
   </style>
 </head>
-<body class="text-slate-800 min-h-screen flex flex-col">
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
   <!-- Header -->
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="bg-blue-600 p-2 rounded-lg text-white">
-          <i class="fa-solid fa-scale-balanced text-xl"></i>
+        <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg">
+          <i class="fa-solid fa-scale-balanced text-2xl text-white"></i>
         </div>
         <div>
-          <h1 class="text-xl font-bold tracking-tight">ניהול תיקי גבייה מוניציפלית וחדל"פ</h1>
-          <p class="text-xs text-slate-400">עיריית נתניה / רשויות מקומיות | מעקב משימות ולוחות זמנים</p>
+          <h1 class="text-lg md:text-xl font-bold tracking-tight">ניהול תיקי גבייה מוניציפלית וחדל"פ</h1>
+          <p class="text-xs text-slate-400">עיריית נתניה / רשויות מקומיות | מעקב משימות, מועדים והסדרים</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="exportData()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded border border-slate-700 flex items-center gap-1.5">
-          <i class="fa-solid fa-download"></i> גיבוי נתונים
+        <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow transition">
+          <i class="fa-solid fa-file-excel"></i> ייצוא לאקסל
         </button>
-        <button onclick="exportToCSV()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs rounded flex items-center gap-1.5 font-semibold">
-          <i class="fa-solid fa-file-excel"></i> יצוא לאקסל
+        <button onclick="exportBackup()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow transition">
+          <i class="fa-solid fa-download"></i> גיבוי
         </button>
+        <label class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow transition cursor-pointer">
+          <i class="fa-solid fa-upload"></i> שחזור
+          <input type="file" id="restoreFile" onchange="restoreBackup(event)" class="hidden" accept=".json">
+        </label>
       </div>
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="bg-white border-b border-slate-200 px-4">
-      <div class="max-w-7xl mx-auto flex gap-6 text-sm">
-        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn py-3 px-2 text-slate-600 hover:text-blue-800 tab-active flex items-center gap-2">
+    <div class="bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 flex gap-6 overflow-x-auto text-sm font-medium">
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="py-3 px-2 tab-active flex items-center gap-2 whitespace-nowrap">
           <i class="fa-solid fa-chart-pie"></i> לוח בקרה ראשי
         </button>
-        <button onclick="switchTab('tasks')" id="tab-tasks" class="tab-btn py-3 px-2 text-slate-600 hover:text-blue-800 flex items-center gap-2">
-          <i class="fa-solid fa-list-check"></i> מנוע משימות ויעדים (<span id="tasks-badge">0</span>)
+        <button onclick="switchTab('tasks')" id="tab-tasks" class="py-3 px-2 text-slate-600 hover:text-blue-600 flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-list-check"></i> מנוע משימות ויעדים (<span id="taskCountBadge">0</span>)
         </button>
-        <button onclick="switchTab('cases')" id="tab-cases" class="tab-btn py-3 px-2 text-slate-600 hover:text-blue-800 flex items-center gap
+        <button onclick="switchTab('cases')" id="tab-cases" class="py-3 px-2 text-slate-600 hover:text-blue-600 flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-folder-open"></i> מאגר תיקים
+        </button>
+        <button onclick="switchTab('calculator')" id="tab-calculator" class="py-3 px-2 text-slate-600 hover:text-blue-600 flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-calculator"></i> מחשבון זקיפת תקבולים
+        </button>
+        <button onclick="switchTab('legal')" id="tab-legal" class="py-3 px-2 text-slate-600 hover:text-blue-600 flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-gavel"></i> בדיקת התיישנות וסעיף 326
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+    <!-- 1. DASHBOARD VIEW -->
+    <section id="view-dashboard" class="space-y-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="p-3 bg-red-100 text-red-600 rounded-lg text-xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div>
+            <div id="stat-urgent" class="text-2xl font-bold text-slate-800">0</div>
+            <div class="text-xs text-slate-500 font-medium">דחופים / חריגה מיעד</div>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="p-3 bg-blue-100 text-blue-600 rounded-lg text-xl"><i class="fa-solid fa-clock"></i></div>
+          <div>
+            <div id="stat-pending" class="text-2xl font-bold text-slate-800">0</div>
+            <div class="text-xs text-slate-500 font-medium">משימות בביצוע</div>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="p-3 bg-amber-100 text-amber-600 rounded-lg text-xl"><i class="fa-solid fa-envelope-open-text"></i></div>
+          <div>
+            <div id="stat-notices" class="text-2xl font-bold text-slate-800">0</div>
+            <div class="text-xs text-slate-500 font-medium">עברו 30 ימי מסירה</div>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="p-3 bg-emerald-100 text-emerald-600 rounded-lg text-xl"><i class="fa-solid fa-folder-tree"></i></div>
+          <div>
+            <div id="stat-total-cases" class="text-2xl font-bold text-slate-800">0</div>
+            <div class="text-xs text-slate-500 font-medium">סך תיקים במעקב</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-bell text-red-500"></i> משימות דחופות לטיפול מיידי</h3>
+            <button onclick="switchTab('tasks')" class="text-xs text-blue-600 font-semibold hover:underline">לכל המשימות &larr;</button>
+          </div>
+          <div id="urgentTasksList" class="space-y-2 text-sm"></div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-gavel text-amber-500"></i> תיקים שמוכנים להגשה (חלפו 30 יום מהמסירה)</h3>
+            <button onclick="switchTab('cases')" class="text-xs text-blue-600 font-semibold hover:underline">למאגר תיקים &larr;</button>
+          </div>
+          <div id="noticeWarningList" class="space-y-2 text-sm"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TASKS VIEW -->
+    <section id="view-tasks" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <input type="text" id="taskSearch" oninput="renderTasks()" placeholder="חיפוש משימה, שם תיק, פעולה..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm w-64 focus:outline-blue-500">
+          <select id="filterOwner" onchange="renderTasks()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm">
+            <option value="">כל האחראים</option>
+            <option value="נועה">נועה</option>
+            <option value="אליאב">אליאב</option>
+          </select>
+          <select id="filterStatus" onchange="renderTasks()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm">
+            <option value="">כל הסטטוסים</option>
+            <option value="לא התחיל">לא התחיל</option>
+            <option value="בביצוע">בביצוע</option>
+            <option value="ממתין לגורם חיצוני">ממתין לגורם חיצוני</option>
+            <option value="בבדיקה / אישור">בבדיקה / אישור</option>
+            <option value="הושלם">הושלם</option>
+          </select>
+        </div>
+        <button onclick="openTaskModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-plus"></i> משימה חדשה
+        </button>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+        <table class="w-full text-right text-xs md:text-sm border-collapse">
+          <thead class="bg-slate-100 text-slate-700 font-semibold border-b">
+            <tr>
+              <th class="p-3">מס"ד</th>
+              <th class="p-3">מספר תיק / עניין</th>
+              <th class="p-3">סוג משימה</th>
+              <th class="p-3 min-w-[280px]">תיאור והוראות לביצוע</th>
+              <th class="p-3">באחריות</th>
+              <th class="p-3">עדיפות</th>
+              <th class="p-3">מועד אחרון</th>
+              <th class="p-3 text-center">ימים שנותרו</th>
+              <th class="p-3">סטטוס</th>
+              <th class="p-3 text-center">פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="tasksTableBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. CASES VIEW -->
+    <section id="view-cases" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <input type="text" id="caseSearch" oninput="renderCases()" placeholder="חיפוש לפי מספר תיק, שם חייב, נכס..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm w-64 focus:outline-blue-500">
+          <select id="caseFilterAuthority" onchange="renderCases()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm">
+            <option value="">כל הרשויות</option>
+            <option value="עיריית נתניה">עיריית נתניה</option>
+            <option value="אחר">אחר</option>
+          </select>
+        </div>
+        <button onclick="openCaseModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-plus"></i> קליטת תיק חדש (מתוך PDF)
+        </button>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+        <table class="w-full text-right text-xs md:text-sm border-collapse">
+          <thead class="bg-slate-100 text-slate-700 font-semibold border-b">
+            <tr>
+              <th class="p-3">רשות</th>
+              <th class="p-3">מספר תיק / בימ"ש</th>
+              <th class="p-3">שם החייב / יחידי משלם</th>
+              <th class="p-3">מעמד</th>
+              <th class="p-3">סכום קרן מקורית</th>
+              <th class="p-3">תאריך מסירה מכתב התראה</th>
+              <th class="p-3">סטטוס 30 ימי חוק</th>
+              <th class="p-3">שלב בתיק</th>
+              <th class="p-3 text-center">פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="casesTableBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. CALCULATOR VIEW -->
+    <section id="view-calculator" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm max-w-3xl mx-auto">
+        <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-calculator text-blue-600"></i> מחשבון זקיפת תקבולים ושכר טרחה (Waterfall)
+        </h3>
+        <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+          חלוקת תקבול: כיסוי אגרות והוצאות תחילה &larr; שכר טרחה &larr; ריבית והצמדה &larr; קרן החוב.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">סכום התקבול בפועל (₪):</label>
+            <input type="number" id="calcPayment" value="5000" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold text-blue-700">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">יתרת אגרות והוצאות פתוחות (₪):</label>
+            <input type="number" id="calcExpenses" value="450" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">יתרת שכר טרחה פסוק/מוסכם (₪):</label>
+            <input type="number" id="calcFee" value="1200" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">יתרת ריבית והפרשי הצמדה (₪):</label>
+            <input type="number" id="calcInterest" value="1800" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">יתרת קרן חוב הארנונה (₪):</label>
+            <input type="number" id="calcPrincipal" value="15000" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
+          </div>
+        </div>
+
+        <button onclick="calculateWaterfall()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm shadow transition">
+          חשב זקיפה והפק דיווח לרשות
+        </button>
+
+        <div id="calcResults" class="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg hidden">
+          <h4 class="font-bold text-slate-800 text-sm mb-3">תוצאת זקיפת התשלום:</h4>
+          <div class="space-y-2 text-xs md:text-sm">
+            <div class="flex justify-between border-b pb-1">
+              <span>כיסוי אגרות והוצאות:</span>
+              <span id="resExpenses" class="font-bold text-slate-700">₪0</span>
+            </div>
+            <div class="flex justify-between border-b pb-1">
+              <span>כיסוי שכר טרחה (למשרד):</span>
+              <span id="resFee" class="font-bold text-emerald-600">₪0</span>
+            </div>
+            <div class="flex justify-between border-b pb-1">
+              <span>כיסוי ריבית והצמדה:</span>
+              <span id="resInterest" class="font-bold text-slate-700">₪0</span>
+            </div>
+            <div class="flex justify-between border-b pb-1">
+              <span>זקיפה ע"ח קרן החוב (להפחתה ברשות):</span>
+              <span id="resPrincipal" class="font-bold text-blue-600">₪0</span>
+            </div>
+            <div class="flex justify-between pt-1 text-red-600 font-semibold">
+              <span>עודף שלא נוצל / יתרה:</span>
+              <span id="resSurplus">₪0</span>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">נוסח מוכן לדיווח הקטנת חוב (העתק-הדבק לרשות/הוצל"פ):</label>
+            <textarea id="resReportText" rows="3" readonly class="w-full text-xs p-2 bg-white border border-slate-200 rounded-lg text-slate-700"></textarea>
+            <button onclick="copyReportText()" class="mt-1 text-xs text-blue-600 font-bold hover:underline flex items-center gap-1">
+              <i class="fa-solid fa-copy"></i> העתק נוסח ללוח
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. LEGAL RULES VIEW -->
+    <section id="view-legal" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm max-w-3xl mx-auto space-y-5">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-scale-unbalanced-flip text-blue-600"></i> בדיקת התיישנות וסעיף 326 (חדילת שוכר / בעלים)
+        </h3>
+
+        <div class="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-3">
+          <h4 class="font-bold text-sm text-slate-800">בדיקת מעמד שוכר שעזב מול הבעלים (סעיף 326 לפקודת העיריות)</h4>
+          <p class="text-xs text-slate-600">האם השוכר מסר הודעה רשמית בכתב לעירייה על עזיבת הנכס (חדילה)?</p>
+          <div class="flex gap-4 text-xs font-semibold">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="cessationNotice" value="no" checked onchange="updateLegalAdvice()"> לא נמסרה הודעת חדילה בכתב
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="cessationNotice" value="yes" onchange="updateLegalAdvice()"> נמסרה הודעת חדילה כדין
+            </label>
+          </div>
+          <div id="cessationAdvice" class="p-3 bg-white border rounded text-xs text-slate-700 leading-relaxed"></div>
+        </div>
+
+        <div class="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-3">
+          <h4 class="font-bold text-sm text-slate-800">בדיקת תקופת התיישנות (7 שנים) ועילות מחיקה</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block font-semibold mb-1">שנת היווצרות החוב המקורית:</label>
+              <input type="number" id="debtYear" value="2017" oninput="updateLimitationAdvice()" class="w-full border rounded p-1.5">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">האם קיימים אישורי מסירה רציפים ב-7 השנים האחרונות?</label>
+              <select id="hasNotices" onchange="updateLimitationAdvice()" class="w-full border rounded p-1.5">
+                <option value="no">לא קיימים אישורי מסירה רציפים (קיים שיהוי / נתק)</option>
+                <option value="yes">כן, נשלחו דרישות ובוצעו הליכי גבייה כדין</option>
+              </select>
+            </div>
+          </div>
+          <div id="limitationAdvice" class="p-3 bg-white border rounded text-xs text-slate-700 leading-relaxed"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modals -->
+  <div id="taskModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-xl max-w-lg w-full p-5 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h4 class="font-bold text-slate-800 text-sm md:text-base">הוספת / עריכת משימה</h4>
+        <button onclick="closeTaskModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="taskForm" onsubmit="saveTask(event)" class="space-y-3 text-xs md:text-sm">
+        <input type="hidden" id="taskEditId">
+        <div>
+          <label class="block font-semibold mb-1">מספר תיק / עניין:</label>
+          <input type="text" id="taskCaseNum" required placeholder="למשל: 51150-07-26 או עמרמי" class="w-full border rounded p-2">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">סוג משימה:</label>
+            <select id="taskType" class="w-full border rounded p-2">
+              <option value="תגובה לביהמ&quot;ש">תגובה לביהמ"ש</option>
+              <option value="הוצאת מכתבי דרישה">הוצאת מכתבי דרישה</option>
+              <option value="המלצה למחיקה">המלצה למחיקה</option>
+              <option value="בדיקה מול כונסי נכסים">בדיקה מול כונסי נכסים</option>
+              <option value="בדיקת אישור כנ&quot;ר">בדיקת אישור כנ"ר</option>
+              <option value="הגשת בקשה">הגשת בקשה</option>
+              <option value="המצאת מסמכים">המצאת מסמכים</option>
+              <option value="אחר">אחר</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">באחריות:</label>
+            <select id="taskOwner" class="w-full border rounded p-2">
+              <option value="נועה">נועה</option>
+              <option value="אליאב">אליאב</option>
+              <option value="טרם שובץ">טרם שובץ</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">תיאור והוראות לביצוע:</label>
+          <textarea id="taskDesc" rows="3" required placeholder="פירוט המשימה..." class="w-full border rounded p-2"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">מועד אחרון (דדליין):</label>
+            <input type="date" id="taskDueDate" required class="w-full border rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">עדיפות:</label>
+            <select id="taskPriority" class="w-full border rounded p-2">
+              <option value="דחוף ביותר">דחוף ביותר</option>
+              <option value="גבוהה">גבוהה</option>
+              <option value="בינונית">בינונית</option>
+              <option value="נמוכה">נמוכה</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">סטטוס:</label>
+          <select id="taskStatus" class="w-full border rounded p-2">
+            <option value="לא התחיל">לא התחיל</option>
+            <option value="בביצוע">בביצוע</option>
+            <option value="ממתין לגורם חיצוני">ממתין לגורם חיצוני</option>
+            <option value="בבדיקה / אישור">בבדיקה / אישור</option>
+            <option value="הושלם">הושלם</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t">
+          <button type="button" onclick="closeTaskModal()" class="px-4 py-1.5 rounded bg-slate-200 text-slate-700 font-semibold">ביטול</button>
+          <button type="submit" class="px-4 py-1.5 rounded bg-blue-600 text-white font-semibold">שמירה</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="caseModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-xl max-w-lg w-full p-5 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h4 class="font-bold text-slate-800 text-sm md:text-base">קליטת תיק חדש (מתוך תדפיס PDF)</h4>
+        <button onclick="closeCaseModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="caseForm" onsubmit="saveCase(event)" class="space-y-3 text-xs md:text-sm">
+        <input type="hidden" id="caseEditId">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">רשות מקומית:</label>
+            <select id="caseAuthority" class="w-full border rounded p-2">
+              <option value="עיריית נתניה">עיריית נתניה</option>
+              <option value="אחר">אחר</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">מספר תיק / עניין:</label>
+            <input type="text" id="caseNum" required placeholder="למשל: 51150-07-26" class="w-full border rounded p-2">
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">שם החייב / יחידי משלם:</label>
+          <input type="text" id="caseDebtor" required placeholder="שמות החייבים / מספרי ת.ז" class="w-full border rounded p-2">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">מעמד:</label>
+            <select id="caseRole" class="w-full border rounded p-2">
+              <option value="בעלים">בעלים</option>
+              <option value="שוכר (לא הודיע חדילה)">שוכר (לא הודיע חדילה)</option>
+              <option value="יחיד בחדל&quot;פ">יחיד בחדל"פ</option>
+              <option value="עיזבון / יורשים">עיזבון / יורשים</option>
+              <option value="חברה">חברה</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">קרן חוב מקורית (₪):</label>
+            <input type="number" id="casePrincipal" placeholder="סכום בשקלים" class="w-full border rounded p-2">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">תאריך מסירת מכתב התראה:</label>
+            <input type="date" id="caseNoticeDate" class="w-full border rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">שלב נוכחי בתיק:</label>
+            <select id="caseStage" class="w-full border rounded p-2">
+              <option value="מכתב התראה נשלח">מכתב התראה נשלח</option>
+              <option value="מוכן לתביעה / הוצל&quot;פ">מוכן לתביעה / הוצל"פ</option>
+              <option value="הסדר תשלומים פעיל">הסדר תשלומים פעיל</option>
+              <option value="בדיקת עזבון / חדל&quot;פ">בדיקת עזבון / חדל"פ</option>
+              <option value="המלצה למחיקה">המלצה למחיקה</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t">
+          <button type="button" onclick="closeCaseModal()" class="px-4 py-1.5 rounded bg-slate-200 text-slate-700 font-semibold">ביטול</button>
+          <button type="submit" class="px-4 py-1.5 rounded bg-blue-600 text-white font-semibold">שמירת תיק</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const initialTasks = [
+      {
+        id: "T-1",
+        caseNum: "51150-07-26",
+        type: 'תגובה לביהמ"ש',
+        desc: "יש להשיב עד ליום 8.11.26 לכל המאוחר ללא ארכות נוספות",
+        owner: "נועה",
+        priority: "דחוף ביותר",
+        dueDate: "2026-11-08",
+        status: "בביצוע"
+      },
+      {
+        id: "T-2",
+        caseNum: "עמרמי איתן אבנר ודקר כרמלה דורטי",
+        type: "בדיקה מול כונסי נכסים",
+        desc: "יש לבדוק האם התקבל אישור כנ\"ר לביצוע מכירה של נכס מפרויקט בכינוס, לבדוק מול עו\"ד חבר באמצעות מירית וכן עם נועה סלומון וחגי אולמן",
+        owner: "נועה",
+        priority: "גבוהה",
+        dueDate: "2026-11-01",
+        status: "בביצוע"
+      },
+      {
+        id: "T-3",
+        caseNum: "עיריית נתניה - יחידי משלם",
+        type: "הוצאת מכתבי דרישה",
+        desc: "שליחת מכתבי דרישה לכלל יחידי המשלם. פעם אחרונה שנשלחו הייתה לפני כשנתיים - משכך, בקשי גם נחלות מעודכנות. עדכני אותי לאחר ביצוע.",
+        owner: "נועה",
+        priority: "גבוהה",
+        dueDate: "2026-10-31",
+        status: "בביצוע"
+      },
+      {
+        id: "T-4",
+        caseNum: "תיק מחיקה 104",
+        type: "המלצה למחיקה",
+        desc: "יש לבקש תדפיס עדכני לצורך עריכת חוות דעת למחיקה",
+        owner: "אליאב",
+        priority: "בינונית",
+        dueDate: "2026-11-05",
+        status: "לא התחיל"
+      }
+    ];
+
+    const initialCases = [
+      {
+        id: "C-1",
+        authority: "עיריית נתניה",
+        caseNum: "51150-07-26",
+        debtor: "עיזבון המנוח ניר בנימין",
+        role: "עיזבון / יורשים",
+        principal: 34200,
+        noticeDate: "2026-09-15",
+        stage: "מוכן לתביעה / הוצל\"פ"
+      },
+      {
+        id: "C-2",
+        authority: "עיריית נתניה",
+        caseNum: "נכס 84210",
+        debtor: "עמרמי איתן אבנר ודקר כרמלה",
+        role: "בעלים",
+        principal: 118000,
+        noticeDate: "2026-10-01",
+        stage: "בדיקת עזבון / חדל\"פ"
+      }
+    ];
+
+    let tasks = JSON.parse(localStorage.getItem('eliav_tasks')) || initialTasks;
+    let cases = JSON.parse(localStorage.getItem('eliav_cases')) || initialCases;
+
+    function saveState() {
+      localStorage.setItem('eliav_tasks', JSON.stringify(tasks));
+      localStorage.setItem('eliav_cases', JSON.stringify(cases));
+      renderAll();
+    }
+
+    function switchTab(tabId) {
+      ['dashboard', 'tasks', 'cases', 'calculator', 'legal'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        const tabBtn = document.getElementById(`tab-${t}`);
+        tabBtn.classList.remove('tab-active');
+        tabBtn.classList.add('text-slate-600');
+      });
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      activeBtn.classList.add('tab-active');
+      activeBtn.classList.remove('text-slate-600');
+    }
+
+    function getDaysLeft(dateStr) {
+      if (!dateStr) return null;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const target = new Date(dateStr);
+      target.setHours(0,0,0,0);
+      const diffTime = target - today;
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    function renderAll() {
+      renderDashboard();
+      renderTasks();
+      renderCases();
+      updateLegalAdvice();
+      updateLimitationAdvice();
+    }
+
+    function renderDashboard() {
+      const urgentTasks = tasks.filter(t => {
+        const d = getDaysLeft(t.dueDate);
+        return t.status !== 'הושלם' && (d <= 3);
+      });
+      const inProgress = tasks.filter(t => t.status === 'בביצוע');
+
+      const expiredNotices = cases.filter(c => {
+        if (!c.noticeDate) return false;
+        const daysSinceNotice = -getDaysLeft(c.noticeDate);
+        return daysSinceNotice >= 30;
+      });
+
+      document.getElementById('stat-urgent').textContent = urgentTasks.length;
+      document.getElementById('stat-pending').textContent = inProgress.length;
+      document.getElementById('stat-notices').textContent = expiredNotices.length;
+      document.getElementById('stat-total-cases').textContent = cases.length;
+      document.getElementById('taskCountBadge').textContent = tasks.filter(t => t.status !== 'הושלם').length;
+
+      const urgentContainer = document.getElementById('urgentTasksList');
+      if (urgentTasks.length === 0) {
+        urgentContainer.innerHTML = '<div class="text-slate-400 py-3 text-center">אין משימות דחופות כרגע 👍</div>';
+      } else {
+        urgentContainer.innerHTML = urgentTasks.map(t => {
+          const d = getDaysLeft(t.dueDate);
+          const badgeColor = d < 0 ? 'bg-red-100 text-red-700 font-bold' : 'bg-amber-100 text-amber-700 font-bold';
+          const label = d < 0 ? `באיחור של ${Math.abs(d)} ימים!` : (d === 0 ? 'היום!' : `נותרו ${d} ימים`);
+          return `
+            <div class="p-2.5 bg-slate-50 border rounded-lg flex justify-between items-center">
+              <div>
+                <div class="font-bold text-slate-800">${t.caseNum} <span class="text-xs font-normal text-slate-500">(${t.type})</span></div>
+                <div class="text-xs text-slate-600 line-clamp-1">${t.desc}</div>
+              </div>
+              <div class="text-left">
+                <span class="text-xs px-2 py-0.5 rounded ${badgeColor}">${label}</span>
+                <div class="text-[11px] text-slate-400 mt-1">${t.owner}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const noticeContainer = document.getElementById('noticeWarningList');
+      if (expiredNotices.length === 0) {
+        noticeContainer.innerHTML = '<div class="text-slate-400 py-3 text-center">אין תיקים שהמתינו 30 יום</div>';
+      } else {
+        noticeContainer.innerHTML = expiredNotices.map(c => {
+          const days = -getDaysLeft(c.noticeDate);
+          return `
+            <div class="p-2.5 bg-slate-50 border rounded-lg flex justify-between items-center">
+              <div>
+                <div class="font-bold text-slate-800">${c.debtor} <span class="text-xs font-normal text-slate-500">(${c.caseNum})</span></div>
+                <div class="text-xs text-emerald-700 font-semibold"><i class="fa-solid fa-check"></i> חלפו ${days} יום ממסירת ההתראה - מוכן לתביעה!</div>
+              </div>
+              <button onclick="switchTab('cases')" class="text-xs bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700">צפה בתיק</button>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderTasks() {
+      const q = (document.getElementById('taskSearch')?.value || '').toLowerCase();
+      const fOwner = document.getElementById('filterOwner')?.value || '';
+      const fStatus = document.getElementById('filterStatus')?.value || '';
+
+      const filtered = tasks.filter(t => {
+        const matchesQ = !q || t.caseNum.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q) || t.type.toLowerCase().includes(q);
+        const matchesOwner = !fOwner || t.owner === fOwner;
+        const matchesStatus = !fStatus || t.status === fStatus;
+        return matchesQ && matchesOwner && matchesStatus;
+      });
+
+      const tbody = document.getElementById('tasksTableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-6 text-slate-400">לא נמצאו משימות התואמות את החיפוש</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((t, idx) => {
+        const d = getDaysLeft(t.dueDate);
+        let daysBadge = '';
+        if (t.status === 'הושלם') {
+          daysBadge = '<span class="text-slate-400 text-xs">הושלם</span>';
+        } else if (d === null) {
+          daysBadge = '<span class="text-slate-400">-</span>';
+        } else if (d < 0) {
+          daysBadge = `<span class="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded text-xs">חריגה: ${d} ימים</span>`;
+        } else if (d <= 3) {
+          daysBadge = `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-xs">דחוף: ${d} ימים</span>`;
+        } else {
+          daysBadge = `<span class="bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded text-xs">${d} ימים</span>`;
+        }
+
+        const prioColors = {
+          'דחוף ביותר': 'text-red-600 font-bold',
+          'גבוהה': 'text-amber-600 font-semibold',
+          'בינונית': 'text-blue-600',
+          'נמוכה': 'text-slate-500'
+        };
+
+        return `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="p-3 text-slate-400">${idx + 1}</td>
+            <td class="p-3 font-bold text-slate-800">${t.caseNum}</td>
+            <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs">${t.type}</span></td>
+            <td class="p-3 text-slate-700 leading-snug">${t.desc}</td>
+            <td class="p-3 font-semibold text-slate-800">${t.owner}</td>
+            <td class="p-3 ${prioColors[t.priority] || ''}">${t.priority}</td>
+            <td class="p-3 text-slate-600">${t.dueDate || '-'}</td>
+            <td class="p-3 text-center">${daysBadge}</td>
+            <td class="p-3">
+              <select onchange="updateTaskStatus('${t.id}', this.value)" class="text-xs border rounded p-1 bg-white">
+                <option value="לא התחיל" ${t.status === 'לא התחיל' ? 'selected' : ''}>לא התחיל</option>
+                <option value="בביצוע" ${t.status === 'בביצוע' ? 'selected' : ''}>בביצוע</option>
+                <option value="ממתין לגורם חיצוני" ${t.status === 'ממתין לגורם חיצוני' ? 'selected' : ''}>ממתין לגורם חיצוני</option>
+                <option value="בבדיקה / אישור" ${t.status === 'בבדיקה / אישור' ? 'selected' : ''}>בבדיקה / אישור</option>
+                <option value="הושלם" ${t.status === 'הושלם' ? 'selected' : ''}>הושלם</option>
+              </select>
+            </td>
+            <td class="p-3 text-center">
+              <button onclick="deleteTask('${t.id}')" class="text-slate-400 hover:text-red-600 p-1" title="מחיקה"><i class="fa-regular fa-trash-can"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderCases() {
+      const q = (document.getElementById('caseSearch')?.value || '').toLowerCase();
+      const fAuth = document.getElementById('caseFilterAuthority')?.value || '';
+
+      const filtered = cases.filter(c => {
+        const matchesQ = !q || c.caseNum.toLowerCase().includes(q) || c.debtor.toLowerCase().includes(q);
+        const matchesAuth = !fAuth || c.authority === fAuth;
+        return matchesQ && matchesAuth;
+      });
+
+      const tbody = document.getElementById('casesTableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-6 text-slate-400">לא נמצאו תיקים במאגר</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => {
+        let noticeStatus = '<span class="text-slate-400">טרם נמסר</span>';
+        if (c.noticeDate) {
+          const days = -getDaysLeft(c.noticeDate);
+          if (days >= 30) {
+            noticeStatus = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-xs">תמו 30 יום (${days}) - להגשה!</span>`;
+          } else {
+            noticeStatus = `<span class="bg-amber-100 text-amber-800 font-medium px-2 py-0.5 rounded text-xs">חלפו ${days}/30 יום</span>`;
+          }
+        }
+
+        return `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="p-3 font-semibold text-slate-700">${c.authority}</td>
+            <td class="p-3 font-bold text-slate-800">${c.caseNum}</td>
+            <td class="p-3 font-medium text-slate-800">${c.debtor}</td>
+            <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs">${c.role}</span></td>
+            <td class="p-3 text-slate-800 font-bold">${c.principal ? '₪' + Number(c.principal).toLocaleString() : '-'}</td>
+            <td class="p-3 text-slate-600">${c.noticeDate || '-'}</td>
+            <td class="p-3">${noticeStatus}</td>
+            <td class="p-3"><span class="bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded text-xs">${c.stage}</span></td>
+            <td class="p-
