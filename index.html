@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מערכת ניהול תיקים וגבייה משפטית | משרד עורכי דין</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
+    body { font-family: 'Assistant', sans-serif; background-color: #f1f5f9; }
+    .tab-active { border-bottom: 3px solid #1e40af; color: #1e40af; font-weight: 700; }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-600 p-2 rounded-lg text-white">
+          <i class="fa-solid fa-scale-balanced text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">ניהול תיקי גבייה מוניציפלית וחדל"פ</h1>
+          <p class="text-xs text-slate-400">עיריית נתניה / רשויות מקומיות | מעקב משימות ולוחות זמנים</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="exportData()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded border border-slate-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-download"></i> גיבוי נתונים
+        </button>
+        <button onclick="exportToCSV()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs rounded flex items-center gap-1.5 font-semibold">
+          <i class="fa-solid fa-file-excel"></i> יצוא לאקסל
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="bg-white border-b border-slate-200 px-4">
+      <div class="max-w-7xl mx-auto flex gap-6 text-sm">
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn py-3 px-2 text-slate-600 hover:text-blue-800 tab-active flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie"></i> לוח בקרה ראשי
+        </button>
+        <button onclick="switchTab('tasks')" id="tab-tasks" class="tab-btn py-3 px-2 text-slate-600 hover:text-blue-800 flex items-center gap-2">
+          <i class="fa-solid fa-list-check"></i> מנוע משימות ויעדים (<span id="tasks-badge">0</span>)
+        </button>
+        <button onclick="switchTab('cases')" id="tab-cases" class="tab-btn py-3 px-2 text-slate-600 hover:text-blue-800 flex items-center gap
