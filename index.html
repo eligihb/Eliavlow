@@ -3,923 +3,926 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ניהול תיקי גבייה מוניציפלית וחדל"פ</title>
+  <title>מערכת ניהול גבייה מוניציפלית ומשלמים</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
-    body { font-family: 'Heebo', sans-serif; background-color: #f1f5f9; }
-    .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700; }
+    body { font-family: 'Heebo', sans-serif; background-color: #e2e8f0; }
+    
+    .btn-action-card {
+      background: linear-gradient(180deg, #d8dee8 0%, #b8c4d4 100%);
+      border: 1px solid #7d93b2;
+      box-shadow: inset 1px 1px 0px rgba(255,255,255,0.7), 1px 2px 3px rgba(0,0,0,0.1);
+      transition: all 0.15s ease;
+      color: #1e293b;
+      font-weight: 700;
+    }
+    .btn-action-card:hover {
+      background: linear-gradient(180deg, #e4ebf5 0%, #c5d3e6 100%);
+      border-color: #2563eb;
+      color: #1d4ed8;
+      box-shadow: inset 1px 1px 0px rgba(255,255,255,0.9), 1px 3px 6px rgba(37,99,235,0.2);
+      transform: translateY(-1px);
+    }
+    .btn-action-card:active {
+      background: linear-gradient(180deg, #a8b8cc 0%, #cbd7e6 100%);
+      transform: translateY(1px);
+      box-shadow: inset 1px 2px 3px rgba(0,0,0,0.2);
+    }
+    
+    .btn-side {
+      background: linear-gradient(180deg, #cfd8e5 0%, #b0bece 100%);
+      border: 1px solid #8294a8;
+      box-shadow: inset 1px 1px 0px rgba(255,255,255,0.6), 0px 1px 2px rgba(0,0,0,0.1);
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .btn-side:hover {
+      background: linear-gradient(180deg, #e2eaf5 0%, #c0cfdf 100%);
+      border-color: #1d4ed8;
+      color: #1e40af;
+    }
+
+    .navy-header-bar {
+      background: linear-gradient(180deg, #18385c 0%, #0f243c 100%);
+    }
+
+    .table-header-navy {
+      background: linear-gradient(180deg, #1b3d63 0%, #122841 100%);
+    }
   </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="min-h-screen text-slate-800 flex flex-col select-none">
 
-  <!-- Header -->
-  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg">
-          <i class="fa-solid fa-scale-balanced text-2xl text-white"></i>
+  <!-- TOP BAR: מערכת ניהול משלמים / בחירת לקוח -->
+  <header class="navy-header-bar text-white px-4 py-2.5 shadow-md border-b-2 border-amber-500/40 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <div class="flex items-center gap-4">
+        <div class="bg-blue-600/90 text-white p-2 rounded shadow flex items-center justify-center">
+          <i class="fa-solid fa-landmark text-lg"></i>
         </div>
-        <div>
-          <h1 class="text-lg md:text-xl font-bold tracking-tight">ניהול תיקי גבייה מוניציפלית וחדל"פ</h1>
-          <p class="text-xs text-slate-400">עיריית נתניה / רשויות מקומיות | מעקב משימות, מועדים והסדרים</p>
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl font-extrabold tracking-wide drop-shadow">ניהול משלמים</h1>
+          <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded border border-slate-600 text-sm">
+            <span class="text-slate-300 font-medium">לקוח:</span>
+            <select id="selectedAuthority" onchange="changeAuthority(this.value)" class="bg-white text-slate-900 font-bold px-2 py-0.5 rounded text-sm border focus:outline-none">
+              <option value="עיריית כפר יונה">עיריית כפר יונה</option>
+              <option value="עיריית נתניה">עיריית נתניה</option>
+              <option value="עיריית תל אביב">עיריית תל אביב</option>
+            </select>
+          </div>
         </div>
       </div>
+
+      <!-- Action Utilities -->
       <div class="flex items-center gap-2">
-        <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow transition">
-          <i class="fa-solid fa-file-excel"></i> ייצוא לאקסל
+        <button onclick="showQuickPayerSearch()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded text-xs shadow flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-magnifying-glass"></i> חיפוש משלם
         </button>
-        <button onclick="exportBackup()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow transition">
+        <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-2.5 py-1 rounded text-xs shadow flex items-center gap-1">
+          <i class="fa-solid fa-file-excel"></i> ייצוא אקסל
+        </button>
+        <button onclick="exportBackupJSON()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-2.5 py-1 rounded text-xs shadow flex items-center gap-1">
           <i class="fa-solid fa-download"></i> גיבוי
-        </button>
-        <label class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow transition cursor-pointer">
-          <i class="fa-solid fa-upload"></i> שחזור
-          <input type="file" id="restoreFile" onchange="restoreBackup(event)" class="hidden" accept=".json">
-        </label>
-      </div>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <div class="bg-white border-b border-slate-200">
-      <div class="max-w-7xl mx-auto px-4 flex gap-6 overflow-x-auto text-sm font-medium">
-        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="py-3 px-2 tab-active flex items-center gap-2 whitespace-nowrap">
-          <i class="fa-solid fa-chart-pie"></i> לוח בקרה ראשי
-        </button>
-        <button onclick="switchTab('tasks')" id="tab-tasks" class="py-3 px-2 text-slate-600 hover:text-blue-600 flex items-center gap-2 whitespace-nowrap">
-          <i class="fa-solid fa-list-check"></i> מנוע משימות ויעדים (<span id="taskCountBadge">0</span>)
-        </button>
-        <button onclick="switchTab('cases')" id="tab-cases" class="py-3 px-2 text-slate-600 hover:text-blue-600 flex items-center gap-2 whitespace-nowrap">
-          <i class="fa-solid fa-folder-open"></i> מאגר תיקים
-        </button>
-        <button onclick="switchTab('calculator')" id="tab-calculator" class="py-3 px-2 text-slate-600 hover:text-blue-600 flex items-center gap-2 whitespace-nowrap">
-          <i class="fa-solid fa-calculator"></i> מחשבון זקיפת תקבולים
-        </button>
-        <button onclick="switchTab('legal')" id="tab-legal" class="py-3 px-2 text-slate-600 hover:text-blue-600 flex items-center gap-2 whitespace-nowrap">
-          <i class="fa-solid fa-gavel"></i> בדיקת התיישנות וסעיף 326
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
-
-    <!-- 1. DASHBOARD VIEW -->
-    <section id="view-dashboard" class="space-y-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div class="p-3 bg-red-100 text-red-600 rounded-lg text-xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
-          <div>
-            <div id="stat-urgent" class="text-2xl font-bold text-slate-800">0</div>
-            <div class="text-xs text-slate-500 font-medium">דחופים / חריגה מיעד</div>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div class="p-3 bg-blue-100 text-blue-600 rounded-lg text-xl"><i class="fa-solid fa-clock"></i></div>
-          <div>
-            <div id="stat-pending" class="text-2xl font-bold text-slate-800">0</div>
-            <div class="text-xs text-slate-500 font-medium">משימות בביצוע</div>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div class="p-3 bg-amber-100 text-amber-600 rounded-lg text-xl"><i class="fa-solid fa-envelope-open-text"></i></div>
-          <div>
-            <div id="stat-notices" class="text-2xl font-bold text-slate-800">0</div>
-            <div class="text-xs text-slate-500 font-medium">עברו 30 ימי מסירה</div>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div class="p-3 bg-emerald-100 text-emerald-600 rounded-lg text-xl"><i class="fa-solid fa-folder-tree"></i></div>
-          <div>
-            <div id="stat-total-cases" class="text-2xl font-bold text-slate-800">0</div>
-            <div class="text-xs text-slate-500 font-medium">סך תיקים במעקב</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-bell text-red-500"></i> משימות דחופות לטיפול מיידי</h3>
-            <button onclick="switchTab('tasks')" class="text-xs text-blue-600 font-semibold hover:underline">לכל המשימות &larr;</button>
-          </div>
-          <div id="urgentTasksList" class="space-y-2 text-sm"></div>
-        </div>
-
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-gavel text-amber-500"></i> תיקים שמוכנים להגשה (חלפו 30 יום מהמסירה)</h3>
-            <button onclick="switchTab('cases')" class="text-xs text-blue-600 font-semibold hover:underline">למאגר תיקים &larr;</button>
-          </div>
-          <div id="noticeWarningList" class="space-y-2 text-sm"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2. TASKS VIEW -->
-    <section id="view-tasks" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-center gap-3">
-        <div class="flex flex-wrap items-center gap-3">
-          <input type="text" id="taskSearch" oninput="renderTasks()" placeholder="חיפוש משימה, שם תיק, פעולה..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm w-64 focus:outline-blue-500">
-          <select id="filterOwner" onchange="renderTasks()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm">
-            <option value="">כל האחראים</option>
-            <option value="נועה">נועה</option>
-            <option value="אליאב">אליאב</option>
-          </select>
-          <select id="filterStatus" onchange="renderTasks()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm">
-            <option value="">כל הסטטוסים</option>
-            <option value="לא התחיל">לא התחיל</option>
-            <option value="בביצוע">בביצוע</option>
-            <option value="ממתין לגורם חיצוני">ממתין לגורם חיצוני</option>
-            <option value="בבדיקה / אישור">בבדיקה / אישור</option>
-            <option value="הושלם">הושלם</option>
-          </select>
-        </div>
-        <button onclick="openTaskModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 shadow">
-          <i class="fa-solid fa-plus"></i> משימה חדשה
+  <!-- SUB-NAV: מעבר בין מסך פעולות ראשי לכרטיס משלם מלא -->
+  <nav class="bg-slate-100 border-b border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="setView('hub')" id="nav-hub" class="px-3 py-1 rounded bg-blue-700 text-white font-bold flex items-center gap-1.5">
+          <i class="fa-solid fa-table-cells-large"></i> תפריט פעולות ראשי (רשות)
+        </button>
+        <button onclick="setView('payer')" id="nav-payer" class="px-3 py-1 rounded hover:bg-slate-200 text-slate-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-user-tag"></i> מסך ראשי - כרטיס משלם ותיק
+        </button>
+        <button onclick="setView('tasks')" id="nav-tasks" class="px-3 py-1 rounded hover:bg-slate-200 text-slate-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-list-check"></i> יומן משימות ושערוך (<span id="topUrgentBadge" class="text-red-600 font-bold">0</span>)
         </button>
       </div>
 
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-        <table class="w-full text-right text-xs md:text-sm border-collapse">
-          <thead class="bg-slate-100 text-slate-700 font-semibold border-b">
-            <tr>
-              <th class="p-3">מס"ד</th>
-              <th class="p-3">מספר תיק / עניין</th>
-              <th class="p-3">סוג משימה</th>
-              <th class="p-3 min-w-[280px]">תיאור והוראות לביצוע</th>
-              <th class="p-3">באחריות</th>
-              <th class="p-3">עדיפות</th>
-              <th class="p-3">מועד אחרון</th>
-              <th class="p-3 text-center">ימים שנותרו</th>
-              <th class="p-3">סטטוס</th>
-              <th class="p-3 text-center">פעולות</th>
-            </tr>
-          </thead>
-          <tbody id="tasksTableBody" class="divide-y divide-slate-100"></tbody>
-        </table>
+      <div class="text-[11px] text-slate-500 flex items-center gap-3">
+        <span>משלם פעיל: <strong id="activePayerNameDisplay" class="text-blue-900 font-bold">אליהו אמיר בוקובזה</strong></span>
+        <span>|</span>
+        <span>מספר נכס: <strong id="activePropertyNumDisplay" class="text-slate-800">410294/0</strong></span>
       </div>
-    </section>
+    </div>
+  </nav>
 
-    <!-- 3. CASES VIEW -->
-    <section id="view-cases" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-center gap-3">
-        <div class="flex flex-wrap items-center gap-3">
-          <input type="text" id="caseSearch" oninput="renderCases()" placeholder="חיפוש לפי מספר תיק, שם חייב, נכס..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm w-64 focus:outline-blue-500">
-          <select id="caseFilterAuthority" onchange="renderCases()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm">
-            <option value="">כל הרשויות</option>
-            <option value="עיריית נתניה">עיריית נתניה</option>
-            <option value="אחר">אחר</option>
-          </select>
-        </div>
-        <button onclick="openCaseModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 shadow">
-          <i class="fa-solid fa-plus"></i> קליטת תיק חדש (מתוך PDF)
+  <!-- MAIN BODY -->
+  <main class="max-w-7xl mx-auto p-4 flex-grow w-full">
+
+    <!-- VIEW 1: HUB תפריט פעולות ראשי -->
+    <div id="view-hub" class="space-y-4">
+      
+      <!-- כפתור חיפוש משלם עליון רחב -->
+      <div class="w-full">
+        <button onclick="openModal('searchPayerModal')" class="w-full py-4 text-center btn-action-card rounded-md text-lg md:text-xl flex items-center justify-center gap-3 tracking-wide">
+          <i class="fa-solid fa-magnifying-glass text-blue-800 text-xl"></i>
+          <span>חיפוש משלם</span>
         </button>
       </div>
 
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-        <table class="w-full text-right text-xs md:text-sm border-collapse">
-          <thead class="bg-slate-100 text-slate-700 font-semibold border-b">
-            <tr>
-              <th class="p-3">רשות</th>
-              <th class="p-3">מספר תיק / בימ"ש</th>
-              <th class="p-3">שם החייב / יחידי משלם</th>
-              <th class="p-3">מעמד</th>
-              <th class="p-3">סכום קרן מקורית</th>
-              <th class="p-3">תאריך מסירה מכתב התראה</th>
-              <th class="p-3">סטטוס 30 ימי חוק</th>
-              <th class="p-3">שלב בתיק</th>
-              <th class="p-3 text-center">פעולות</th>
-            </tr>
-          </thead>
-          <tbody id="casesTableBody" class="divide-y divide-slate-100"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- 4. CALCULATOR VIEW -->
-    <section id="view-calculator" class="hidden space-y-6">
-      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm max-w-3xl mx-auto">
-        <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
-          <i class="fa-solid fa-calculator text-blue-600"></i> מחשבון זקיפת תקבולים ושכר טרחה (Waterfall)
-        </h3>
-        <p class="text-xs text-slate-500 mb-6 leading-relaxed">
-          חלוקת תקבול: כיסוי אגרות והוצאות תחילה &larr; שכר טרחה &larr; ריבית והצמדה &larr; קרן החוב.
-        </p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">סכום התקבול בפועל (₪):</label>
-            <input type="number" id="calcPayment" value="5000" class="w-full border border-slate-300 rounded-lg p-2 text-sm font-bold text-blue-700">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">יתרת אגרות והוצאות פתוחות (₪):</label>
-            <input type="number" id="calcExpenses" value="450" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">יתרת שכר טרחה פסוק/מוסכם (₪):</label>
-            <input type="number" id="calcFee" value="1200" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">יתרת ריבית והפרשי הצמדה (₪):</label>
-            <input type="number" id="calcInterest" value="1800" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
-          </div>
-          <div class="md:col-span-2">
-            <label class="block text-xs font-semibold text-slate-600 mb-1">יתרת קרן חוב הארנונה (₪):</label>
-            <input type="number" id="calcPrincipal" value="15000" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
-          </div>
-        </div>
-
-        <button onclick="calculateWaterfall()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm shadow transition">
-          חשב זקיפה והפק דיווח לרשות
+      <!-- גריד כפתורי הפעולות -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+        
+        <button onclick="openHubAction('דואר נכנס')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+          <span class="text-sm md:text-base">דואר נכנס</span>
+          <span class="text-[11px] font-normal text-slate-600">סריקות ותגובות</span>
         </button>
 
-        <div id="calcResults" class="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg hidden">
-          <h4 class="font-bold text-slate-800 text-sm mb-3">תוצאת זקיפת התשלום:</h4>
-          <div class="space-y-2 text-xs md:text-sm">
-            <div class="flex justify-between border-b pb-1">
-              <span>כיסוי אגרות והוצאות:</span>
-              <span id="resExpenses" class="font-bold text-slate-700">₪0</span>
-            </div>
-            <div class="flex justify-between border-b pb-1">
-              <span>כיסוי שכר טרחה (למשרד):</span>
-              <span id="resFee" class="font-bold text-emerald-600">₪0</span>
-            </div>
-            <div class="flex justify-between border-b pb-1">
-              <span>כיסוי ריבית והצמדה:</span>
-              <span id="resInterest" class="font-bold text-slate-700">₪0</span>
-            </div>
-            <div class="flex justify-between border-b pb-1">
-              <span>זקיפה ע"ח קרן החוב (להפחתה ברשות):</span>
-              <span id="resPrincipal" class="font-bold text-blue-600">₪0</span>
-            </div>
-            <div class="flex justify-between pt-1 text-red-600 font-semibold">
-              <span>עודף שלא נוצל / יתרה:</span>
-              <span id="resSurplus">₪0</span>
-            </div>
-          </div>
+        <button onclick="openHubAction('סטטוסים ללקוח')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+          <span class="text-sm md:text-base">סטטוסים ללקוח</span>
+          <span class="text-[11px] font-normal text-slate-600">דיווח מרוכז לרשות</span>
+        </button>
 
-          <div class="mt-4 pt-3 border-t">
-            <label class="block text-xs font-semibold text-slate-600 mb-1">נוסח מוכן לדיווח הקטנת חוב (העתק-הדבק לרשות/הוצל"פ):</label>
-            <textarea id="resReportText" rows="3" readonly class="w-full text-xs p-2 bg-white border border-slate-200 rounded-lg text-slate-700"></textarea>
-            <button onclick="copyReportText()" class="mt-1 text-xs text-blue-600 font-bold hover:underline flex items-center gap-1">
-              <i class="fa-solid fa-copy"></i> העתק נוסח ללוח
+        <button onclick="openHubAction('סטטוסים לפי מנהל לקוח')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+          <span class="text-sm md:text-base">סטטוסים לפי מנהל לקוח</span>
+          <span class="text-[11px] font-normal text-slate-600">חלוקה לפי גורם מטפל</span>
+        </button>
+
+        <button onclick="openModal('recommendationModal')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center border-amber-600">
+          <span class="text-sm md:text-base text-amber-900 font-extrabold">המלצות למחיקה</span>
+          <span class="text-[11px] font-normal text-slate-600">התיישנות / חוסר כדאיות</span>
+        </button>
+
+        <button onclick="openHubAction('משלמים לעדכון תשלום לפי אוטומציה')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+          <span class="text-sm md:text-base">משלמים לעדכון תשלום</span>
+          <span class="text-[11px] font-normal text-slate-600">לפי אוטומציה / הסדרים</span>
+        </button>
+
+        <button onclick="openHubAction('משלמים בעיכוב הליכים')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+          <span class="text-sm md:text-base">משלמים בעיכוב הליכים</span>
+          <span class="text-[11px] font-normal text-slate-600">צווי חדל"פ / בקשות רשם</span>
+        </button>
+
+        <button onclick="openModal('addPayerModal')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center border-blue-500">
+          <span class="text-sm md:text-base text-blue-900 font-extrabold">+ הוספת משלם</span>
+          <span class="text-[11px] font-normal text-slate-600">קליטה מהירה מ-PDF</span>
+        </button>
+
+        <button onclick="openHubAction('אישורים לתביעה')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+          <span class="text-sm md:text-base">אישורים לתביעה</span>
+          <span class="text-[11px] font-normal text-slate-600">ספירת 30 ימי מסירה</span>
+        </button>
+
+        <button onclick="openHubAction('הפקת דוח משלמים')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+          <span class="text-sm md:text-base">הפקת דוח משלמים</span>
+          <span class="text-[11px] font-normal text-slate-600">ייצוא פילוחים לאקסל</span>
+        </button>
+
+        <button onclick="openHubAction('משלמים לבדיקת חוב באוטומציה')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+          <span class="text-sm md:text-base">משלמים לבדיקת חוב</span>
+          <span class="text-[11px] font-normal text-slate-600">הצלבה מול ספרי הרשות</span>
+        </button>
+
+        <button onclick="openHubAction('מכתבי התראה')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+          <span class="text-sm md:text-base">מכתבי התראה</span>
+          <span class="text-[11px] font-normal text-slate-600">הפקה ושליחה למסירה</span>
+        </button>
+
+        <button onclick="openHubAction('קליטת תדפיסי חוב מתיבת המייל')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+          <span class="text-sm md:text-base">קליטת תדפיסי חוב</span>
+          <span class="text-[11px] font-normal text-slate-600">מתיבת המייל / PDF</span>
+        </button>
+
+        <div class="col-span-2 grid grid-cols-2 gap-3.5">
+          <button onclick="openHubAction('נכסים לבדיקת רישום שעבוד')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+            <span class="text-sm md:text-base">נכסים לבדיקת רישום שעבוד</span>
+            <span class="text-[11px] font-normal text-slate-600">סעיף 11א לפקודת המיסים</span>
+          </button>
+
+          <button onclick="openHubAction('שעבודים מנהליים')" class="btn-action-card h-20 rounded-md p-2 flex flex-col items-center justify-center text-center">
+            <span class="text-sm md:text-base">שעבודים מנהליים</span>
+            <span class="text-[11px] font-normal text-slate-600">רישום הערות בטאבו</span>
+          </button>
+        </div>
+
+        <div class="col-span-2 bg-white/70 p-3 rounded border border-slate-300 text-xs flex items-center justify-between">
+          <div>
+            <div class="font-bold text-slate-800">מסלול עבודה רשותי:</div>
+            <div class="text-slate-600">קליטת חוב $\rightarrow$ מכתב התראה $\rightarrow$ 30 ימי מסירה $\rightarrow$ תביעה / המלצה למחיקה.</div>
+          </div>
+          <button onclick="setView('payer')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded shadow text-xs">
+            מעבר לכרטיס משלם &larr;
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- VIEW 2: מסך ראשי - כרטיס משלם ותיק -->
+    <div id="view-payer" class="hidden space-y-4">
+      
+      <div class="bg-white border border-slate-300 rounded shadow-sm overflow-hidden">
+        
+        <div class="table-header-navy text-white px-4 py-2 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-base md:text-lg">מסך ראשי - משלם:</span>
+            <span id="cardHeaderPayerName" class="text-amber-300 font-extrabold text-lg">אליהו אמיר בוקובזה</span>
+            <span class="text-xs text-slate-300">(ת"ז: 028471924)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openModal('searchPayerModal')" class="bg-slate-200 hover:bg-white text-slate-900 px-3 py-1 rounded text-xs font-bold border border-slate-400">
+              עבור למשלם ישן
+            </button>
+            <button onclick="alert('פתיחת ממשק שליחת מייל לרשות')" class="bg-slate-100 hover:bg-white text-slate-900 px-3 py-1 rounded text-xs font-bold border border-slate-400 flex items-center gap-1">
+              <i class="fa-regular fa-envelope"></i> שלח מייל
             </button>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- 5. LEGAL RULES VIEW -->
-    <section id="view-legal" class="hidden space-y-6">
-      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm max-w-3xl mx-auto space-y-5">
-        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-          <i class="fa-solid fa-scale-unbalanced-flip text-blue-600"></i> בדיקת התיישנות וסעיף 326 (חדילת שוכר / בעלים)
+        <!-- נתוני המשלם המפורטים -->
+        <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-6 text-xs md:text-sm">
+          <div>
+            <span class="text-slate-500 font-medium">שם לקוח:</span>
+            <span id="cardAuthorityDisplay" class="font-bold text-slate-800 mr-1">עיריית כפר יונה</span>
+          </div>
+          <div>
+            <span class="text-slate-500 font-medium">יחידי משלם:</span>
+            <span id="cardPayersList" class="font-bold text-slate-800 mr-1">אליהו אמיר בוקובזה</span>
+          </div>
+          <div>
+            <span class="text-slate-500 font-medium">מספר נכס:</span>
+            <span id="cardPropertyNum" class="font-bold text-slate-800 mr-1">410294/0</span>
+          </div>
+          <div>
+            <span class="text-slate-500 font-medium">מכתב אחרון:</span>
+            <span class="font-bold text-red-600 mr-1">15/09/2026 (התראה)</span>
+          </div>
+
+          <div>
+            <span class="text-slate-500 font-medium">משלם היסטורי:</span>
+            <span class="font-semibold text-slate-800 mr-1">שוכר קודם</span>
+          </div>
+          <div>
+            <span class="text-slate-500 font-medium">יש אינדיקציית בעלות:</span>
+            <span class="font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded mr-1">כן</span>
+          </div>
+          <div>
+            <span class="text-slate-500 font-medium">יתרת חוב כוללת:</span>
+            <span id="cardTotalDebt" class="font-extrabold text-blue-900 mr-1">₪48,920</span>
+          </div>
+          <div>
+            <span class="text-slate-500 font-medium">סך הוצאות:</span>
+            <span class="font-bold text-slate-800 mr-1">₪3,450</span>
+          </div>
+        </div>
+
+        <!-- כפתורי פעולה צדדיים + טבלת פעולות -->
+        <div class="grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-slate-300">
+          
+          <div class="md:col-span-3 p-3 bg-slate-200/60 space-y-2">
+            <button onclick="alert('מעבר לטופס יצירת תביעה / בקשת ביצוע')" class="w-full py-2 btn-side rounded text-center text-xs flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-gavel text-blue-900"></i> צור תביעה
+            </button>
+            <button onclick="alert('מעבר לטופס יצירת מכתב התראה')" class="w-full py-2 btn-side rounded text-center text-xs flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-file-pen text-slate-800"></i> צור מכתב
+            </button>
+            <button onclick="openActionDetailsModal(null)" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-center text-xs flex items-center justify-center gap-1.5 shadow">
+              <i class="fa-solid fa-plus"></i> הוסף פעולה
+            </button>
+            <button onclick="alert('הזמנת תדפיס חוב עדכני מהרשות')" class="w-full py-2 btn-side rounded text-center text-xs flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-file-arrow-down text-slate-800"></i> הזמנת מסמך
+            </button>
+            <button onclick="alert('הזנת אישור מסירה וספירת 30 יום')" class="w-full py-2 btn-side rounded text-center text-xs flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-truck-ramp-box text-slate-800"></i> מסירות
+            </button>
+            <button onclick="alert('הוספת אגרות וחיובים')" class="w-full py-2 btn-side rounded text-center text-xs flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-receipt text-slate-800"></i> הוספת חיובים
+            </button>
+            <button onclick="alert('רישום תקבול ושערוך זקיפה')" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-center text-xs flex items-center justify-center gap-1.5 shadow">
+              <i class="fa-solid fa-money-bill-wave"></i> תשלום
+            </button>
+            <button onclick="openModal('recommendationModal')" class="w-full py-2 btn-side rounded text-center text-xs text-amber-900 font-bold flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-trash-can text-amber-700"></i> המלצה למחיקה
+            </button>
+          </div>
+
+          <div class="md:col-span-9 p-4 bg-white flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-timeline text-blue-700"></i> היסטוריית פעולות בתיק (דאבל-קליק לפתיחת פרטי פעולה):
+                </h4>
+              </div>
+
+              <div class="border border-slate-300 rounded overflow-x-auto">
+                <table class="w-full text-right text-xs border-collapse">
+                  <thead class="bg-slate-200 text-slate-800 font-bold border-b border-slate-300">
+                    <tr>
+                      <th class="p-2 w-12 text-center">מס"ד</th>
+                      <th class="p-2 w-28">תאריך ושעה</th>
+                      <th class="p-2 w-24">מס' אסמכתא</th>
+                      <th class="p-2 w-24">מספר נכס</th>
+                      <th class="p-2">תיאור פעולה</th>
+                      <th class="p-2 w-28">שם מבצע</th>
+                      <th class="p-2 w-24 text-center">קובץ</th>
+                      <th class="p-2 w-16 text-center">פעולות</th>
+                    </tr>
+                  </thead>
+                  <tbody id="payerActionsTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between text-xs text-slate-600 gap-2">
+              <div>
+                <span>מס' תיק עודכנית: <strong>15948/26</strong></span> | 
+                <span>מס' תיק בימ"ש: <strong>51150-07-26</strong></span>
+              </div>
+              <button onclick="setView('hub')" class="px-3 py-1 rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-800">
+                &rarr; חזרה לתפריט ראשי
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- VIEW 3: יומן משימות ושערוך -->
+    <div id="view-tasks" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded shadow-sm border border-slate-300 flex flex-wrap justify-between items-center gap-3">
+        <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-blue-700"></i> יומן משימות ולוחות זמנים קשיחים
         </h3>
-
-        <div class="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-3">
-          <h4 class="font-bold text-sm text-slate-800">בדיקת מעמד שוכר שעזב מול הבעלים (סעיף 326 לפקודת העיריות)</h4>
-          <p class="text-xs text-slate-600">האם השוכר מסר הודעה רשמית בכתב לעירייה על עזיבת הנכס (חדילה)?</p>
-          <div class="flex gap-4 text-xs font-semibold">
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="cessationNotice" value="no" checked onchange="updateLegalAdvice()"> לא נמסרה הודעת חדילה בכתב
-            </label>
-            <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="cessationNotice" value="yes" onchange="updateLegalAdvice()"> נמסרה הודעת חדילה כדין
-            </label>
-          </div>
-          <div id="cessationAdvice" class="p-3 bg-white border rounded text-xs text-slate-700 leading-relaxed"></div>
-        </div>
-
-        <div class="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-3">
-          <h4 class="font-bold text-sm text-slate-800">בדיקת תקופת התיישנות (7 שנים) ועילות מחיקה</h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-            <div>
-              <label class="block font-semibold mb-1">שנת היווצרות החוב המקורית:</label>
-              <input type="number" id="debtYear" value="2017" oninput="updateLimitationAdvice()" class="w-full border rounded p-1.5">
-            </div>
-            <div>
-              <label class="block font-semibold mb-1">האם קיימים אישורי מסירה רציפים ב-7 השנים האחרונות?</label>
-              <select id="hasNotices" onchange="updateLimitationAdvice()" class="w-full border rounded p-1.5">
-                <option value="no">לא קיימים אישורי מסירה רציפים (קיים שיהוי / נתק)</option>
-                <option value="yes">כן, נשלחו דרישות ובוצעו הליכי גבייה כדין</option>
-              </select>
-            </div>
-          </div>
-          <div id="limitationAdvice" class="p-3 bg-white border rounded text-xs text-slate-700 leading-relaxed"></div>
-        </div>
+        <select id="taskFilterAssignee" onchange="renderGlobalTasks()" class="border border-slate-300 rounded p-1 text-xs">
+          <option value="">כל המבצעים (אליאב, נועה, רופינה)</option>
+          <option value="אליאב">אליאב</option>
+          <option value="נועה">נועה</option>
+          <option value="רופינה דדשוב">רופינה דדשוב</option>
+        </select>
       </div>
-    </section>
+
+      <div class="bg-white border border-slate-300 rounded overflow-x-auto shadow-sm">
+        <table class="w-full text-right text-xs md:text-sm border-collapse">
+          <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
+            <tr>
+              <th class="p-3">משלם / תיק</th>
+              <th class="p-3">סוג משימה</th>
+              <th class="p-3">פירוט והוראות</th>
+              <th class="p-3">באחריות</th>
+              <th class="p-3">מועד אחרון</th>
+              <th class="p-3 text-center">ימים שנותרו</th>
+              <th class="p-3">סטטוס</th>
+            </tr>
+          </thead>
+          <tbody id="globalTasksTableBody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+    </div>
 
   </main>
 
-  <!-- Modals -->
-  <div id="taskModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-xl max-w-lg w-full p-5 space-y-4 shadow-xl">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h4 class="font-bold text-slate-800 text-sm md:text-base">הוספת / עריכת משימה</h4>
-        <button onclick="closeTaskModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-      </div>
-      <form id="taskForm" onsubmit="saveTask(event)" class="space-y-3 text-xs md:text-sm">
-        <input type="hidden" id="taskEditId">
-        <div>
-          <label class="block font-semibold mb-1">מספר תיק / עניין:</label>
-          <input type="text" id="taskCaseNum" required placeholder="למשל: 51150-07-26 או עמרמי" class="w-full border rounded p-2">
+  <!-- MODAL: פרטי פעולה (צילום מסך 4) -->
+  <div id="actionDetailsModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-slate-50 border-2 border-slate-500 rounded-lg max-w-2xl w-full shadow-2xl overflow-hidden text-xs md:text-sm">
+      
+      <div class="table-header-navy text-white px-4 py-2 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="font-bold text-base">פרטי פעולה</span>
+          <span id="modalActionSubtitle" class="text-xs text-amber-300 font-semibold">מס' אסמכתא: 532311</span>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold mb-1">סוג משימה:</label>
-            <select id="taskType" class="w-full border rounded p-2">
-              <option value="תגובה לביהמ&quot;ש">תגובה לביהמ"ש</option>
-              <option value="הוצאת מכתבי דרישה">הוצאת מכתבי דרישה</option>
-              <option value="המלצה למחיקה">המלצה למחיקה</option>
-              <option value="בדיקה מול כונסי נכסים">בדיקה מול כונסי נכסים</option>
-              <option value="בדיקת אישור כנ&quot;ר">בדיקת אישור כנ"ר</option>
-              <option value="הגשת בקשה">הגשת בקשה</option>
-              <option value="המצאת מסמכים">המצאת מסמכים</option>
-              <option value="אחר">אחר</option>
-            </select>
+        <div class="flex items-center gap-2">
+          <button onclick="alert('פתיחת מענה במייל')" class="bg-slate-200 hover:bg-white text-slate-900 font-bold px-2.5 py-1 rounded text-xs border border-slate-400">
+            השב למייל
+          </button>
+          <button onclick="closeModal('actionDetailsModal')" class="bg-slate-200 hover:bg-white text-slate-900 font-bold px-3 py-1 rounded text-xs border border-slate-400">
+            סגור
+          </button>
+        </div>
+      </div>
+
+      <div class="p-4 grid grid-cols-1 md:grid-cols-12 gap-4">
+        
+        <div class="md:col-span-7 space-y-2 border-l border-slate-200 pl-3">
+          <div class="flex items-center justify-between border-b pb-1">
+            <span class="text-slate-600 font-medium">מס' אסמכתא:</span>
+            <input type="text" id="actionModalAsmachta" value="532311" class="border rounded px-2 py-0.5 text-xs font-bold text-slate-800 w-36 text-center">
           </div>
-          <div>
-            <label class="block font-semibold mb-1">באחריות:</label>
-            <select id="taskOwner" class="w-full border rounded p-2">
+          <div class="flex items-center justify-between border-b pb-1">
+            <span class="text-slate-600 font-medium">תאריך פעולה:</span>
+            <input type="text" id="actionModalDate" value="15/09/2026 14:11:05" class="border rounded px-2 py-0.5 text-xs text-slate-800 w-44 text-center">
+          </div>
+          <div class="flex items-center justify-between border-b pb-1">
+            <span class="text-slate-600 font-medium">מספר נכס:</span>
+            <input type="text" id="actionModalProperty" value="410294/0" class="border rounded px-2 py-0.5 text-xs text-slate-800 w-36 text-center">
+          </div>
+          <div class="flex items-center justify-between border-b pb-1">
+            <span class="text-slate-600 font-medium">העתק מכתב:</span>
+            <input type="text" placeholder="שם קובץ" class="border rounded px-2 py-0.5 text-xs text-slate-800 w-44">
+          </div>
+          <div class="flex items-center justify-between border-b pb-1 pt-1">
+            <span class="text-slate-800 font-bold">שם מבצע:</span>
+            <select id="actionModalExecutor" class="border rounded px-2 py-1 text-xs font-bold bg-white w-44">
+              <option value="רופינה דדשוב">רופינה דדשוב</option>
               <option value="נועה">נועה</option>
               <option value="אליאב">אליאב</option>
-              <option value="טרם שובץ">טרם שובץ</option>
             </select>
           </div>
+
+          <div class="pt-2 space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-600 w-24">שלח במייל ל:</span>
+              <input type="text" placeholder="כתובת מייל" class="border rounded px-2 py-1 text-xs flex-grow">
+              <button class="btn-side px-2.5 py-1 rounded text-xs">שלח</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-600 w-24">תיק לקישור:</span>
+              <input type="text" value="hemed-sr\\v\\files\\משלמים\\תיק.pdf" class="border rounded px-2 py-1 text-xs flex-grow font-mono text-[11px]">
+              <button class="btn-side px-2.5 py-1 rounded text-xs">קשר לתיק</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="md:col-span-5 space-y-3">
+          <div>
+            <label class="block font-bold text-slate-800 mb-1">תיאור פעולה:</label>
+            <textarea id="actionModalDesc" rows="4" class="w-full border rounded p-2 text-xs bg-white leading-relaxed">המלצה למחיקה. המלצה למחיקה בעניין החייב אליהו אמיר בוקובזה.</textarea>
+          </div>
+
+          <div class="bg-amber-50 border border-amber-300 p-2.5 rounded space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-amber-900">המלצת מחיקה מספר:</span>
+              <span class="font-extrabold text-emerald-800 text-sm bg-white px-2 py-0.5 rounded border border-emerald-300">15698</span>
+            </div>
+            <div>
+              <span class="text-slate-600 block mb-0.5 font-medium">קבלן מסירה:</span>
+              <select class="w-full border rounded p-1 text-xs bg-white">
+                <option value="דואר ישראל">דואר ישראל</option>
+                <option value="שליח משפטי">שליח משפטי</option>
+              </select>
+            </div>
+            <button class="w-full btn-side py-1.5 rounded font-bold text-xs">
+              שלח למוסר
+            </button>
+          </div>
+
+          <button class="w-full btn-side py-2 rounded font-bold text-xs text-blue-900 flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-paper-plane"></i> שלח בדואר היברידי
+          </button>
+        </div>
+
+      </div>
+
+      <div class="bg-slate-200 px-4 py-2 flex items-center justify-between border-t border-slate-300">
+        <button onclick="deleteActionItem()" class="text-red-600 hover:text-red-800 font-bold text-xs flex items-center gap-1">
+          <i class="fa-regular fa-trash-can"></i> מחק פעולה
+        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="closeModal('actionDetailsModal')" class="px-4 py-1 rounded bg-slate-300 hover:bg-slate-400 font-bold text-slate-800 text-xs">ביטול</button>
+          <button onclick="saveActionDetailsModal()" class="px-5 py-1 rounded bg-blue-700 hover:bg-blue-800 font-bold text-white text-xs shadow">שמור פעולה</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: חיפוש משלם -->
+  <div id="searchPayerModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white border rounded-lg max-w-lg w-full p-4 shadow-xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-slate-800 text-sm">חיפוש משלם</h3>
+        <button onclick="closeModal('searchPayerModal')" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div>
+        <input type="text" id="payerSearchInput" oninput="searchPayersList(this.value)" placeholder="הקלד שם, תעודת זהות או מספר נכס..." class="w-full border-2 border-blue-500 rounded p-2 text-sm focus:outline-none">
+      </div>
+      <div id="searchResultsBox" class="max-h-60 overflow-y-auto divide-y border rounded text-xs"></div>
+      <div class="flex justify-end pt-2">
+        <button onclick="closeModal('searchPayerModal')" class="px-4 py-1 bg-slate-200 rounded text-xs font-bold">סגור</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: הוספת משלם חדש -->
+  <div id="addPayerModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white border rounded-lg max-w-md w-full p-4 shadow-xl space-y-3 text-xs md:text-sm">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-slate-800">הוספת משלם חדש (קליטה מ-PDF)</h3>
+        <button onclick="closeModal('addPayerModal')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleAddNewPayer(event)" class="space-y-2">
+        <div>
+          <label class="block font-semibold mb-0.5">רשות מקומית:</label>
+          <select id="newPayerAuth" class="w-full border rounded p-1.5 bg-white">
+            <option value="עיריית כפר יונה">עיריית כפר יונה</option>
+            <option value="עיריית נתניה">עיריית נתניה</option>
+          </select>
         </div>
         <div>
-          <label class="block font-semibold mb-1">תיאור והוראות לביצוע:</label>
-          <textarea id="taskDesc" rows="3" required placeholder="פירוט המשימה..." class="w-full border rounded p-2"></textarea>
+          <label class="block font-semibold mb-0.5">שם מלא:</label>
+          <input type="text" id="newPayerName" required placeholder="שם החייב / יחידי משלם" class="w-full border rounded p-1.5">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block font-semibold mb-1">מועד אחרון (דדליין):</label>
-            <input type="date" id="taskDueDate" required class="w-full border rounded p-2">
+            <label class="block font-semibold mb-0.5">ת"ז / ח.פ:</label>
+            <input type="text" id="newPayerIdNum" required class="w-full border rounded p-1.5">
           </div>
           <div>
-            <label class="block font-semibold mb-1">עדיפות:</label>
-            <select id="taskPriority" class="w-full border rounded p-2">
-              <option value="דחוף ביותר">דחוף ביותר</option>
-              <option value="גבוהה">גבוהה</option>
-              <option value="בינונית">בינונית</option>
-              <option value="נמוכה">נמוכה</option>
-            </select>
+            <label class="block font-semibold mb-0.5">מספר נכס:</label>
+            <input type="text" id="newPayerProp" required class="w-full border rounded p-1.5">
           </div>
         </div>
         <div>
-          <label class="block font-semibold mb-1">סטטוס:</label>
-          <select id="taskStatus" class="w-full border rounded p-2">
-            <option value="לא התחיל">לא התחיל</option>
-            <option value="בביצוע">בביצוע</option>
-            <option value="ממתין לגורם חיצוני">ממתין לגורם חיצוני</option>
-            <option value="בבדיקה / אישור">בבדיקה / אישור</option>
-            <option value="הושלם">הושלם</option>
-          </select>
+          <label class="block font-semibold mb-0.5">סכום חוב (₪):</label>
+          <input type="number" id="newPayerDebt" required class="w-full border rounded p-1.5">
         </div>
         <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeTaskModal()" class="px-4 py-1.5 rounded bg-slate-200 text-slate-700 font-semibold">ביטול</button>
-          <button type="submit" class="px-4 py-1.5 rounded bg-blue-600 text-white font-semibold">שמירה</button>
+          <button type="button" onclick="closeModal('addPayerModal')" class="px-3 py-1 bg-slate-200 rounded text-xs font-bold">ביטול</button>
+          <button type="submit" class="px-4 py-1 bg-blue-700 text-white rounded text-xs font-bold">קלוט משלם</button>
         </div>
       </form>
     </div>
   </div>
 
-  <div id="caseModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-xl max-w-lg w-full p-5 space-y-4 shadow-xl">
+  <!-- MODAL: המלצה למחיקה -->
+  <div id="recommendationModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white border rounded-lg max-w-xl w-full p-4 shadow-xl space-y-3 text-xs md:text-sm">
       <div class="flex justify-between items-center border-b pb-2">
-        <h4 class="font-bold text-slate-800 text-sm md:text-base">קליטת תיק חדש (מתוך תדפיס PDF)</h4>
-        <button onclick="closeCaseModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <h3 class="font-bold text-amber-900 flex items-center gap-1.5">
+          <i class="fa-solid fa-stamp text-amber-600"></i> המלצה למחיקת חוב
+        </h3>
+        <button onclick="closeModal('recommendationModal')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <form id="caseForm" onsubmit="saveCase(event)" class="space-y-3 text-xs md:text-sm">
-        <input type="hidden" id="caseEditId">
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold mb-1">רשות מקומית:</label>
-            <select id="caseAuthority" class="w-full border rounded p-2">
-              <option value="עיריית נתניה">עיריית נתניה</option>
-              <option value="אחר">אחר</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">מספר תיק / עניין:</label>
-            <input type="text" id="caseNum" required placeholder="למשל: 51150-07-26" class="w-full border rounded p-2">
-          </div>
+      <div class="space-y-2">
+        <div>
+          <span class="text-slate-600 font-semibold">משלם:</span>
+          <span class="font-bold text-slate-800" id="recPayerNameDisplay">אליהו אמיר בוקובזה</span>
         </div>
         <div>
-          <label class="block font-semibold mb-1">שם החייב / יחידי משלם:</label>
-          <input type="text" id="caseDebtor" required placeholder="שמות החייבים / מספרי ת.ז" class="w-full border rounded p-2">
+          <label class="block font-semibold mb-0.5">עילת מחיקה:</label>
+          <select id="recCause" class="w-full border rounded p-1.5 bg-white">
+            <option value="התיישנות">התיישנות סטטוטורית (סעיף 3 לחוק ההתיישנות)</option>
+            <option value="ביטול צו כינוס">ביטול צו כינוס והעדר נכסים</option>
+            <option value="חייב נפטר">פטירת החייב ללא עזבון</option>
+          </select>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold mb-1">מעמד:</label>
-            <select id="caseRole" class="w-full border rounded p-2">
-              <option value="בעלים">בעלים</option>
-              <option value="שוכר (לא הודיע חדילה)">שוכר (לא הודיע חדילה)</option>
-              <option value="יחיד בחדל&quot;פ">יחיד בחדל"פ</option>
-              <option value="עיזבון / יורשים">עיזבון / יורשים</option>
-              <option value="חברה">חברה</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">קרן חוב מקורית (₪):</label>
-            <input type="number" id="casePrincipal" placeholder="סכום בשקלים" class="w-full border rounded p-2">
-          </div>
+        <div>
+          <label class="block font-semibold mb-0.5">נימוק לוועדה:</label>
+          <textarea id="recReasonText" rows="3" class="w-full border rounded p-2 text-xs leading-relaxed">הואיל וחלפו למעלה מ-7 שנים ללא פעולות גבייה מנתקות מירוץ, מומלץ למחוק את יתרת החוב מחוסר כדאיות.</textarea>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold mb-1">תאריך מסירת מכתב התראה:</label>
-            <input type="date" id="caseNoticeDate" class="w-full border rounded p-2">
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">שלב נוכחי בתיק:</label>
-            <select id="caseStage" class="w-full border rounded p-2">
-              <option value="מכתב התראה נשלח">מכתב התראה נשלח</option>
-              <option value="מוכן לתביעה / הוצל&quot;פ">מוכן לתביעה / הוצל"פ</option>
-              <option value="הסדר תשלומים פעיל">הסדר תשלומים פעיל</option>
-              <option value="בדיקת עזבון / חדל&quot;פ">בדיקת עזבון / חדל"פ</option>
-              <option value="המלצה למחיקה">המלצה למחיקה</option>
-            </select>
-          </div>
-        </div>
-        <div class="flex justify-end gap-2 pt-2 border-t">
-          <button type="button" onclick="closeCaseModal()" class="px-4 py-1.5 rounded bg-slate-200 text-slate-700 font-semibold">ביטול</button>
-          <button type="submit" class="px-4 py-1.5 rounded bg-blue-600 text-white font-semibold">שמירת תיק</button>
-        </div>
-      </form>
+      </div>
+      <div class="flex justify-between items-center pt-2 border-t">
+        <button onclick="copyRecommendationText()" class="text-blue-700 font-bold hover:underline">
+          <i class="fa-regular fa-copy"></i> העתק נוסח
+        </button>
+        <button onclick="submitRecommendationAction()" class="px-4 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold text-xs">הזן המלצה</button>
+      </div>
     </div>
   </div>
 
   <script>
-    const initialTasks = [
+    let payersDatabase = [
       {
-        id: "T-1",
-        caseNum: "51150-07-26",
-        type: 'תגובה לביהמ"ש',
+        id: "P-101",
+        authority: "עיריית כפר יונה",
+        name: "אליהו אמיר בוקובזה",
+        idNum: "028471924",
+        propertyNum: "410294/0",
+        totalDebt: 48920,
+        lawsuitFile: "51150-07-26",
+        role: "בעלים",
+        actions: [
+          {
+            id: "ACT-1",
+            date: "15/09/2026 14:11:05",
+            asmachta: "532311",
+            property: "410294/0",
+            desc: "המלצה למחיקה. המלצה למחיקה בעניין החייב אליהו אמיר בוקובזה.",
+            executor: "רופינה דדשוב",
+            filePath: "hemed-sr\\\\v\\\\files\\\\המלצה.pdf"
+          },
+          {
+            id: "ACT-2",
+            date: "11/05/2026 09:30:00",
+            asmachta: "512800",
+            property: "410294/0",
+            desc: "הערה: סיום הליך פשיטת רגל של החייב אליהו אמיר בוקובזה זהות מספר 22359129. ניתן צו ביטול של צו הכינוס מהסיבה: סיבה לא מוכרת, יש לבדוק באתר הכונס הרשמי. יש לבדוק אם ניתן להמשיך בהליכים כנגד החייב...",
+            executor: "רופינה דדשוב",
+            filePath: "hemed-sr\\\\v\\\\files\\\\ביטול.pdf"
+          }
+        ]
+      },
+      {
+        id: "P-102",
+        authority: "עיריית נתניה",
+        name: "עמרמי איתן אבנר ודקר כרמלה",
+        idNum: "054819203",
+        propertyNum: "84210/2",
+        totalDebt: 118000,
+        lawsuitFile: "1284-09-26",
+        role: "בעלים",
+        actions: [
+          {
+            id: "ACT-4",
+            date: "22/10/2026 10:14:00",
+            asmachta: "540112",
+            property: "84210/2",
+            desc: "יש לבדוק האם התקבל אישור כנ\"ר לביצוע מכירה של נכס מפרויקט בכינוס, לבדוק מול עו\"ד חבר באמצעות מירית וכן עם נועה סלומון וחגי אולמן.",
+            executor: "נועה",
+            filePath: "hemed-sr\\\\v\\\\files\\\\עמרמי.pdf"
+          }
+        ]
+      }
+    ];
+
+    let activePayerId = "P-101";
+
+    let globalTasks = [
+      {
+        id: "GT-1",
+        payer: "עיזבון המנוח ניר בנימין",
+        type: "תגובה לביהמ\"ש",
         desc: "יש להשיב עד ליום 8.11.26 לכל המאוחר ללא ארכות נוספות",
         owner: "נועה",
-        priority: "דחוף ביותר",
         dueDate: "2026-11-08",
         status: "בביצוע"
       },
       {
-        id: "T-2",
-        caseNum: "עמרמי איתן אבנר ודקר כרמלה דורטי",
-        type: "בדיקה מול כונסי נכסים",
-        desc: "יש לבדוק האם התקבל אישור כנ\"ר לביצוע מכירה של נכס מפרויקט בכינוס, לבדוק מול עו\"ד חבר באמצעות מירית וכן עם נועה סלומון וחגי אולמן",
+        id: "GT-2",
+        payer: "עמרמי איתן ודקר כרמלה",
+        type: "בדיקה מול כונס",
+        desc: "אישור כנ\"ר למכירת נכס בכינוס",
         owner: "נועה",
-        priority: "גבוהה",
         dueDate: "2026-11-01",
         status: "בביצוע"
-      },
-      {
-        id: "T-3",
-        caseNum: "עיריית נתניה - יחידי משלם",
-        type: "הוצאת מכתבי דרישה",
-        desc: "שליחת מכתבי דרישה לכלל יחידי המשלם. פעם אחרונה שנשלחו הייתה לפני כשנתיים - משכך, בקשי גם נחלות מעודכנות. עדכני אותי לאחר ביצוע.",
-        owner: "נועה",
-        priority: "גבוהה",
-        dueDate: "2026-10-31",
-        status: "בביצוע"
-      },
-      {
-        id: "T-4",
-        caseNum: "תיק מחיקה 104",
-        type: "המלצה למחיקה",
-        desc: "יש לבקש תדפיס עדכני לצורך עריכת חוות דעת למחיקה",
-        owner: "אליאב",
-        priority: "בינונית",
-        dueDate: "2026-11-05",
-        status: "לא התחיל"
       }
     ];
 
-    const initialCases = [
-      {
-        id: "C-1",
-        authority: "עיריית נתניה",
-        caseNum: "51150-07-26",
-        debtor: "עיזבון המנוח ניר בנימין",
-        role: "עיזבון / יורשים",
-        principal: 34200,
-        noticeDate: "2026-09-15",
-        stage: "מוכן לתביעה / הוצל\"פ"
-      },
-      {
-        id: "C-2",
-        authority: "עיריית נתניה",
-        caseNum: "נכס 84210",
-        debtor: "עמרמי איתן אבנר ודקר כרמלה",
+    function loadStorage() {
+      const sp = localStorage.getItem('eliav_payers_db');
+      if (sp) payersDatabase = JSON.parse(sp);
+      const st = localStorage.getItem('eliav_global_tasks');
+      if (st) globalTasks = JSON.parse(st);
+    }
+
+    function saveStorage() {
+      localStorage.setItem('eliav_payers_db', JSON.stringify(payersDatabase));
+      localStorage.setItem('eliav_global_tasks', JSON.stringify(globalTasks));
+    }
+
+    function setView(v) {
+      ['hub', 'payer', 'tasks'].forEach(x => {
+        document.getElementById(`view-${x}`).classList.add('hidden');
+        const b = document.getElementById(`nav-${x}`);
+        b.classList.remove('bg-blue-700', 'text-white', 'font-bold');
+        b.classList.add('hover:bg-slate-200', 'text-slate-700');
+      });
+      document.getElementById(`view-${v}`).classList.remove('hidden');
+      const ab = document.getElementById(`nav-${v}`);
+      ab.classList.add('bg-blue-700', 'text-white', 'font-bold');
+      ab.classList.remove('hover:bg-slate-200', 'text-slate-700');
+
+      if (v === 'payer') renderActivePayerCard();
+      if (v === 'tasks') renderGlobalTasks();
+    }
+
+    function renderActivePayerCard() {
+      const p = payersDatabase.find(x => x.id === activePayerId) || payersDatabase[0];
+      if (!p) return;
+
+      document.getElementById('cardHeaderPayerName').textContent = p.name;
+      document.getElementById('activePayerNameDisplay').textContent = p.name;
+      document.getElementById('cardAuthorityDisplay').textContent = p.authority;
+      document.getElementById('cardPayersList').textContent = p.name;
+      document.getElementById('cardPropertyNum').textContent = p.propertyNum;
+      document.getElementById('activePropertyNumDisplay').textContent = p.propertyNum;
+      document.getElementById('cardTotalDebt').textContent = '₪' + Number(p.totalDebt || 0).toLocaleString();
+      document.getElementById('recPayerNameDisplay').textContent = p.name;
+
+      const tbody = document.getElementById('payerActionsTableBody');
+      tbody.innerHTML = (p.actions || []).map((act, idx) => `
+        <tr ondblclick="openActionDetailsModal('${act.id}')" class="hover:bg-blue-50 transition border-b border-slate-200 cursor-pointer">
+          <td class="p-2 text-center text-slate-400">${idx + 1}</td>
+          <td class="p-2 font-mono text-[11px] text-slate-700">${act.date}</td>
+          <td class="p-2 font-bold text-blue-900">${act.asmachta || '-'}</td>
+          <td class="p-2 text-slate-600">${act.property}</td>
+          <td class="p-2 text-slate-800">${act.desc}</td>
+          <td class="p-2 font-semibold text-slate-700">${act.executor || '-'}</td>
+          <td class="p-2 text-center">
+            <span class="text-blue-600 text-[10px] bg-slate-100 px-1 py-0.5 rounded border border-slate-300">
+              <i class="fa-solid fa-file-pdf text-red-600"></i> ${act.filePath.split('\\\\').pop() || 'קובץ'}
+            </span>
+          </td>
+          <td class="p-2 text-center">
+            <button onclick="openActionDetailsModal('${act.id}')" class="text-slate-600 hover:text-blue-700"><i class="fa-solid fa-pen-to-square"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    let currentEditingActionId = null;
+    function openActionDetailsModal(id) {
+      currentEditingActionId = id;
+      const p = payersDatabase.find(x => x.id === activePayerId);
+      if (id && p) {
+        const act = p.actions.find(a => a.id === id);
+        if (act) {
+          document.getElementById('modalActionSubtitle').textContent = `מס' אסמכתא: ${act.asmachta}`;
+          document.getElementById('actionModalAsmachta').value = act.asmachta;
+          document.getElementById('actionModalDate').value = act.date;
+          document.getElementById('actionModalProperty').value = act.property;
+          document.getElementById('actionModalExecutor').value = act.executor;
+          document.getElementById('actionModalDesc').value = act.desc;
+        }
+      } else {
+        const now = new Date();
+        document.getElementById('modalActionSubtitle').textContent = `פעולה חדשה בתיק`;
+        document.getElementById('actionModalAsmachta').value = Math.floor(500000 + Math.random() * 50000);
+        document.getElementById('actionModalDate').value = now.toLocaleDateString('he-IL') + ' ' + now.toLocaleTimeString('he-IL');
+        document.getElementById('actionModalProperty').value = p ? p.propertyNum : "410294/0";
+        document.getElementById('actionModalExecutor').value = "אליאב";
+        document.getElementById('actionModalDesc').value = "";
+      }
+      openModal('actionDetailsModal');
+    }
+
+    function saveActionDetailsModal() {
+      const p = payersDatabase.find(x => x.id === activePayerId);
+      if (!p) return;
+
+      const asmachta = document.getElementById('actionModalAsmachta').value;
+      const date = document.getElementById('actionModalDate').value;
+      const property = document.getElementById('actionModalProperty').value;
+      const executor = document.getElementById('actionModalExecutor').value;
+      const desc = document.getElementById('actionModalDesc').value;
+
+      if (!desc.trim()) { alert('נא להזין תיאור'); return; }
+
+      if (currentEditingActionId) {
+        const act = p.actions.find(a => a.id === currentEditingActionId);
+        if (act) {
+          act.asmachta = asmachta; act.date = date; act.property = property; act.executor = executor; act.desc = desc;
+        }
+      } else {
+        p.actions.unshift({
+          id: 'ACT-' + Date.now(),
+          date: date, asmachta: asmachta, property: property, desc: desc, executor: executor,
+          filePath: "hemed-sr\\\\v\\\\files\\\\פעולה.pdf"
+        });
+      }
+      saveStorage();
+      renderActivePayerCard();
+      closeModal('actionDetailsModal');
+    }
+
+    function deleteActionItem() {
+      if (!currentEditingActionId) { closeModal('actionDetailsModal'); return; }
+      if (confirm('למחוק פעולה זו?')) {
+        const p = payersDatabase.find(x => x.id === activePayerId);
+        if (p) {
+          p.actions = p.actions.filter(a => a.id !== currentEditingActionId);
+          saveStorage();
+          renderActivePayerCard();
+        }
+        closeModal('actionDetailsModal');
+      }
+    }
+
+    function searchPayersList(q) {
+      const query = (q || '').toLowerCase();
+      const resultsBox = document.getElementById('searchResultsBox');
+      const filtered = payersDatabase.filter(p => p.name.toLowerCase().includes(query) || p.idNum.includes(query) || p.propertyNum.includes(query));
+
+      resultsBox.innerHTML = filtered.map(p => `
+        <div onclick="selectPayer('${p.id}')" class="p-2 hover:bg-blue-50 cursor-pointer flex justify-between items-center">
+          <div>
+            <div class="font-bold text-slate-800">${p.name} <span class="text-slate-500 font-normal">(${p.idNum})</span></div>
+            <div class="text-[11px] text-slate-500">${p.authority} | נכס: ${p.propertyNum}</div>
+          </div>
+          <button class="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-bold">בחר</button>
+        </div>
+      `).join('');
+    }
+
+    function selectPayer(id) {
+      activePayerId = id;
+      closeModal('searchPayerModal');
+      setView('payer');
+    }
+
+    function showQuickPayerSearch() {
+      openModal('searchPayerModal');
+      searchPayersList('');
+    }
+
+    function handleAddNewPayer(e) {
+      e.preventDefault();
+      const newP = {
+        id: 'P-' + Date.now(),
+        authority: document.getElementById('newPayerAuth').value,
+        name: document.getElementById('newPayerName').value,
+        idNum: document.getElementById('newPayerIdNum').value,
+        propertyNum: document.getElementById('newPayerProp').value,
+        totalDebt: parseFloat(document.getElementById('newPayerDebt').value) || 0,
+        lawsuitFile: "טרם נפתח",
         role: "בעלים",
-        principal: 118000,
-        noticeDate: "2026-10-01",
-        stage: "בדיקת עזבון / חדל\"פ"
-      }
-    ];
-
-    let tasks = JSON.parse(localStorage.getItem('eliav_tasks')) || initialTasks;
-    let cases = JSON.parse(localStorage.getItem('eliav_cases')) || initialCases;
-
-    function saveState() {
-      localStorage.setItem('eliav_tasks', JSON.stringify(tasks));
-      localStorage.setItem('eliav_cases', JSON.stringify(cases));
-      renderAll();
-    }
-
-    function switchTab(tabId) {
-      ['dashboard', 'tasks', 'cases', 'calculator', 'legal'].forEach(t => {
-        document.getElementById(`view-${t}`).classList.add('hidden');
-        const tabBtn = document.getElementById(`tab-${t}`);
-        tabBtn.classList.remove('tab-active');
-        tabBtn.classList.add('text-slate-600');
-      });
-      document.getElementById(`view-${tabId}`).classList.remove('hidden');
-      const activeBtn = document.getElementById(`tab-${tabId}`);
-      activeBtn.classList.add('tab-active');
-      activeBtn.classList.remove('text-slate-600');
-    }
-
-    function getDaysLeft(dateStr) {
-      if (!dateStr) return null;
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      const target = new Date(dateStr);
-      target.setHours(0,0,0,0);
-      const diffTime = target - today;
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    }
-
-    function renderAll() {
-      renderDashboard();
-      renderTasks();
-      renderCases();
-      updateLegalAdvice();
-      updateLimitationAdvice();
-    }
-
-    function renderDashboard() {
-      const urgentTasks = tasks.filter(t => {
-        const d = getDaysLeft(t.dueDate);
-        return t.status !== 'הושלם' && (d <= 3);
-      });
-      const inProgress = tasks.filter(t => t.status === 'בביצוע');
-
-      const expiredNotices = cases.filter(c => {
-        if (!c.noticeDate) return false;
-        const daysSinceNotice = -getDaysLeft(c.noticeDate);
-        return daysSinceNotice >= 30;
-      });
-
-      document.getElementById('stat-urgent').textContent = urgentTasks.length;
-      document.getElementById('stat-pending').textContent = inProgress.length;
-      document.getElementById('stat-notices').textContent = expiredNotices.length;
-      document.getElementById('stat-total-cases').textContent = cases.length;
-      document.getElementById('taskCountBadge').textContent = tasks.filter(t => t.status !== 'הושלם').length;
-
-      const urgentContainer = document.getElementById('urgentTasksList');
-      if (urgentTasks.length === 0) {
-        urgentContainer.innerHTML = '<div class="text-slate-400 py-3 text-center">אין משימות דחופות כרגע 👍</div>';
-      } else {
-        urgentContainer.innerHTML = urgentTasks.map(t => {
-          const d = getDaysLeft(t.dueDate);
-          const badgeColor = d < 0 ? 'bg-red-100 text-red-700 font-bold' : 'bg-amber-100 text-amber-700 font-bold';
-          const label = d < 0 ? `באיחור של ${Math.abs(d)} ימים!` : (d === 0 ? 'היום!' : `נותרו ${d} ימים`);
-          return `
-            <div class="p-2.5 bg-slate-50 border rounded-lg flex justify-between items-center">
-              <div>
-                <div class="font-bold text-slate-800">${t.caseNum} <span class="text-xs font-normal text-slate-500">(${t.type})</span></div>
-                <div class="text-xs text-slate-600 line-clamp-1">${t.desc}</div>
-              </div>
-              <div class="text-left">
-                <span class="text-xs px-2 py-0.5 rounded ${badgeColor}">${label}</span>
-                <div class="text-[11px] text-slate-400 mt-1">${t.owner}</div>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
-      const noticeContainer = document.getElementById('noticeWarningList');
-      if (expiredNotices.length === 0) {
-        noticeContainer.innerHTML = '<div class="text-slate-400 py-3 text-center">אין תיקים שהמתינו 30 יום</div>';
-      } else {
-        noticeContainer.innerHTML = expiredNotices.map(c => {
-          const days = -getDaysLeft(c.noticeDate);
-          return `
-            <div class="p-2.5 bg-slate-50 border rounded-lg flex justify-between items-center">
-              <div>
-                <div class="font-bold text-slate-800">${c.debtor} <span class="text-xs font-normal text-slate-500">(${c.caseNum})</span></div>
-                <div class="text-xs text-emerald-700 font-semibold"><i class="fa-solid fa-check"></i> חלפו ${days} יום ממסירת ההתראה - מוכן לתביעה!</div>
-              </div>
-              <button onclick="switchTab('cases')" class="text-xs bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700">צפה בתיק</button>
-            </div>
-          `;
-        }).join('');
-      }
-    }
-
-    function renderTasks() {
-      const q = (document.getElementById('taskSearch')?.value || '').toLowerCase();
-      const fOwner = document.getElementById('filterOwner')?.value || '';
-      const fStatus = document.getElementById('filterStatus')?.value || '';
-
-      const filtered = tasks.filter(t => {
-        const matchesQ = !q || t.caseNum.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q) || t.type.toLowerCase().includes(q);
-        const matchesOwner = !fOwner || t.owner === fOwner;
-        const matchesStatus = !fStatus || t.status === fStatus;
-        return matchesQ && matchesOwner && matchesStatus;
-      });
-
-      const tbody = document.getElementById('tasksTableBody');
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-6 text-slate-400">לא נמצאו משימות התואמות את החיפוש</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = filtered.map((t, idx) => {
-        const d = getDaysLeft(t.dueDate);
-        let daysBadge = '';
-        if (t.status === 'הושלם') {
-          daysBadge = '<span class="text-slate-400 text-xs">הושלם</span>';
-        } else if (d === null) {
-          daysBadge = '<span class="text-slate-400">-</span>';
-        } else if (d < 0) {
-          daysBadge = `<span class="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded text-xs">חריגה: ${d} ימים</span>`;
-        } else if (d <= 3) {
-          daysBadge = `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-xs">דחוף: ${d} ימים</span>`;
-        } else {
-          daysBadge = `<span class="bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded text-xs">${d} ימים</span>`;
-        }
-
-        const prioColors = {
-          'דחוף ביותר': 'text-red-600 font-bold',
-          'גבוהה': 'text-amber-600 font-semibold',
-          'בינונית': 'text-blue-600',
-          'נמוכה': 'text-slate-500'
-        };
-
-        return `
-          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-            <td class="p-3 text-slate-400">${idx + 1}</td>
-            <td class="p-3 font-bold text-slate-800">${t.caseNum}</td>
-            <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs">${t.type}</span></td>
-            <td class="p-3 text-slate-700 leading-snug">${t.desc}</td>
-            <td class="p-3 font-semibold text-slate-800">${t.owner}</td>
-            <td class="p-3 ${prioColors[t.priority] || ''}">${t.priority}</td>
-            <td class="p-3 text-slate-600">${t.dueDate || '-'}</td>
-            <td class="p-3 text-center">${daysBadge}</td>
-            <td class="p-3">
-              <select onchange="updateTaskStatus('${t.id}', this.value)" class="text-xs border rounded p-1 bg-white">
-                <option value="לא התחיל" ${t.status === 'לא התחיל' ? 'selected' : ''}>לא התחיל</option>
-                <option value="בביצוע" ${t.status === 'בביצוע' ? 'selected' : ''}>בביצוע</option>
-                <option value="ממתין לגורם חיצוני" ${t.status === 'ממתין לגורם חיצוני' ? 'selected' : ''}>ממתין לגורם חיצוני</option>
-                <option value="בבדיקה / אישור" ${t.status === 'בבדיקה / אישור' ? 'selected' : ''}>בבדיקה / אישור</option>
-                <option value="הושלם" ${t.status === 'הושלם' ? 'selected' : ''}>הושלם</option>
-              </select>
-            </td>
-            <td class="p-3 text-center">
-              <button onclick="deleteTask('${t.id}')" class="text-slate-400 hover:text-red-600 p-1" title="מחיקה"><i class="fa-regular fa-trash-can"></i></button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function renderCases() {
-      const q = (document.getElementById('caseSearch')?.value || '').toLowerCase();
-      const fAuth = document.getElementById('caseFilterAuthority')?.value || '';
-
-      const filtered = cases.filter(c => {
-        const matchesQ = !q || c.caseNum.toLowerCase().includes(q) || c.debtor.toLowerCase().includes(q);
-        const matchesAuth = !fAuth || c.authority === fAuth;
-        return matchesQ && matchesAuth;
-      });
-
-      const tbody = document.getElementById('casesTableBody');
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-6 text-slate-400">לא נמצאו תיקים במאגר</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = filtered.map(c => {
-        let noticeStatus = '<span class="text-slate-400">טרם נמסר</span>';
-        if (c.noticeDate) {
-          const days = -getDaysLeft(c.noticeDate);
-          if (days >= 30) {
-            noticeStatus = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-xs">תמו 30 יום (${days}) - להגשה!</span>`;
-          } else {
-            noticeStatus = `<span class="bg-amber-100 text-amber-800 font-medium px-2 py-0.5 rounded text-xs">חלפו ${days}/30 יום</span>`;
-          }
-        }
-
-        return `
-          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-            <td class="p-3 font-semibold text-slate-700">${c.authority}</td>
-            <td class="p-3 font-bold text-slate-800">${c.caseNum}</td>
-            <td class="p-3 font-medium text-slate-800">${c.debtor}</td>
-            <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs">${c.role}</span></td>
-            <td class="p-3 text-slate-800 font-bold">${c.principal ? '₪' + Number(c.principal).toLocaleString() : '-'}</td>
-            <td class="p-3 text-slate-600">${c.noticeDate || '-'}</td>
-            <td class="p-3">${noticeStatus}</td>
-            <td class="p-3"><span class="bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded text-xs">${c.stage}</span></td>
-            <td class="p-3 text-center">
-              <button onclick="deleteCase('${c.id}')" class="text-slate-400 hover:text-red-600 p-1" title="מחיקת תיק"><i class="fa-regular fa-trash-can"></i></button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function openTaskModal() {
-      document.getElementById('taskEditId').value = '';
-      document.getElementById('taskForm').reset();
-      document.getElementById('taskModal').classList.remove('hidden');
-    }
-    function closeTaskModal() {
-      document.getElementById('taskModal').classList.add('hidden');
-    }
-    function saveTask(e) {
-      e.preventDefault();
-      const newTask = {
-        id: 'T-' + Date.now(),
-        caseNum: document.getElementById('taskCaseNum').value,
-        type: document.getElementById('taskType').value,
-        desc: document.getElementById('taskDesc').value,
-        owner: document.getElementById('taskOwner').value,
-        priority: document.getElementById('taskPriority').value,
-        dueDate: document.getElementById('taskDueDate').value,
-        status: document.getElementById('taskStatus').value
+        actions: [{
+          id: 'ACT-' + Date.now(),
+          date: new Date().toLocaleDateString('he-IL') + ' ' + new Date().toLocaleTimeString('he-IL'),
+          asmachta: String(Math.floor(500000 + Math.random() * 50000)),
+          property: document.getElementById('newPayerProp').value,
+          desc: "קליטת תיק ראשונית",
+          executor: "אליאב",
+          filePath: "hemed-sr\\\\v\\\\files\\\\תדפיס.pdf"
+        }]
       };
-      tasks.unshift(newTask);
-      saveState();
-      closeTaskModal();
-    }
-    function updateTaskStatus(id, newStatus) {
-      const t = tasks.find(x => x.id === id);
-      if (t) {
-        t.status = newStatus;
-        saveState();
-      }
-    }
-    function deleteTask(id) {
-      if (confirm('האם למחוק משימה זו?')) {
-        tasks = tasks.filter(x => x.id !== id);
-        saveState();
-      }
+      payersDatabase.unshift(newP);
+      activePayerId = newP.id;
+      saveStorage();
+      closeModal('addPayerModal');
+      setView('payer');
     }
 
-    function openCaseModal() {
-      document.getElementById('caseEditId').value = '';
-      document.getElementById('caseForm').reset();
-      document.getElementById('caseModal').classList.remove('hidden');
-    }
-    function closeCaseModal() {
-      document.getElementById('caseModal').classList.add('hidden');
-    }
-    function saveCase(e) {
-      e.preventDefault();
-      const newCase = {
-        id: 'C-' + Date.now(),
-        authority: document.getElementById('caseAuthority').value,
-        caseNum: document.getElementById('caseNum').value,
-        debtor: document.getElementById('caseDebtor').value,
-        role: document.getElementById('caseRole').value,
-        principal: document.getElementById('casePrincipal').value,
-        noticeDate: document.getElementById('caseNoticeDate').value,
-        stage: document.getElementById('caseStage').value
-      };
-      cases.unshift(newCase);
-      saveState();
-      closeCaseModal();
-    }
-    function deleteCase(id) {
-      if (confirm('האם למחוק תיק זה?')) {
-        cases = cases.filter(x => x.id !== id);
-        saveState();
-      }
-    }
-
-    function calculateWaterfall() {
-      const payment = parseFloat(document.getElementById('calcPayment').value) || 0;
-      let expenses = parseFloat(document.getElementById('calcExpenses').value) || 0;
-      let fee = parseFloat(document.getElementById('calcFee').value) || 0;
-      let interest = parseFloat(document.getElementById('calcInterest').value) || 0;
-      let principal = parseFloat(document.getElementById('calcPrincipal').value) || 0;
-
-      let remaining = payment;
-
-      const paidExpenses = Math.min(remaining, expenses);
-      remaining -= paidExpenses;
-
-      const paidFee = Math.min(remaining, fee);
-      remaining -= paidFee;
-
-      const paidInterest = Math.min(remaining, interest);
-      remaining -= paidInterest;
-
-      const paidPrincipal = Math.min(remaining, principal);
-      remaining -= paidPrincipal;
-
-      document.getElementById('resExpenses').textContent = '₪' + paidExpenses.toLocaleString();
-      document.getElementById('resFee').textContent = '₪' + paidFee.toLocaleString();
-      document.getElementById('resInterest').textContent = '₪' + paidInterest.toLocaleString();
-      document.getElementById('resPrincipal').textContent = '₪' + paidPrincipal.toLocaleString();
-      document.getElementById('resSurplus').textContent = remaining > 0 ? ('₪' + remaining.toLocaleString()) : '₪0';
-
-      const report = `לכבוד מחלקת גבייה / הוצאה לפועל: הרינו לדווח על קבלת תקבול בסך ₪${payment.toLocaleString()}. בהתאם לכללי הזקיפה: שכר טרחה ואגרות נפרעו בסך ₪${(paidExpenses + paidFee).toLocaleString()}, ריבית כוסתה בסך ₪${paidInterest.toLocaleString()}, ויש לבצע הפחתת קרן חוב בסך ₪${paidPrincipal.toLocaleString()}.`;
-      document.getElementById('resReportText').value = report;
-      document.getElementById('calcResults').classList.remove('hidden');
-    }
-
-    function copyReportText() {
-      const txt = document.getElementById('resReportText');
+    function copyRecommendationText() {
+      const txt = document.getElementById('recReasonText');
       txt.select();
       document.execCommand('copy');
-      alert('נוסח הדיווח הועתק ללוח בהצלחה!');
+      alert('הועתק ללוח!');
     }
 
-    function updateLegalAdvice() {
-      const val = document.querySelector('input[name="cessationNotice"]:checked').value;
-      const box = document.getElementById('cessationAdvice');
-      if (val === 'no') {
-        box.innerHTML = `
-          <div class="text-emerald-700 font-bold mb-1"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> המלצה אופרטיבית: תביעה ביחד ולחוד</div>
-          הואיל והשוכר לא מסר הודעת חדילה בכתב כנדרש לפי סעיף 326 לפקודת העיריות, הבעלים והשוכר חבים בחוב יחד ולחוד. ניתן לפתוח תביעה / בקשת ביצוע כנגד שניהם.
-        `;
-      } else {
-        box.innerHTML = `
-          <div class="text-blue-700 font-bold mb-1"><i class="fa-solid fa-circle-info"></i> חובת הסבת חוב</div>
-          נמסרה הודעת חדילה כדין. יש לבצע הסבת חוב לבעלים או למחזיק החדש ממועד ההודעה בלבד. חובות שנוצרו טרם החדילה נשארים על השוכר הקודם.
-        `;
-      }
+    function submitRecommendationAction() {
+      const p = payersDatabase.find(x => x.id === activePayerId);
+      if (!p) return;
+      p.actions.unshift({
+        id: 'ACT-' + Date.now(),
+        date: new Date().toLocaleDateString('he-IL') + ' ' + new Date().toLocaleTimeString('he-IL'),
+        asmachta: "15698",
+        property: p.propertyNum,
+        desc: `המלצה למחיקה: ${document.getElementById('recReasonText').value}`,
+        executor: "אליאב",
+        filePath: "hemed-sr\\\\v\\\\files\\\\המלצה.pdf"
+      });
+      saveStorage();
+      renderActivePayerCard();
+      closeModal('recommendationModal');
     }
 
-    function updateLimitationAdvice() {
-      const year = parseInt(document.getElementById('debtYear').value) || 2026;
-      const hasNotices = document.getElementById('hasNotices').value;
-      const box = document.getElementById('limitationAdvice');
-      const currentYear = new Date().getFullYear();
-      const diff = currentYear - year;
+    function renderGlobalTasks() {
+      const f = document.getElementById('taskFilterAssignee')?.value || '';
+      const filtered = globalTasks.filter(t => !f || t.owner === f);
+      document.getElementById('globalTasksTableBody').innerHTML = filtered.map(t => `
+        <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+          <td class="p-3 font-bold text-blue-900">${t.payer}</td>
+          <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs">${t.type}</span></td>
+          <td class="p-3 text-slate-700">${t.desc}</td>
+          <td class="p-3 font-semibold text-slate-800">${t.owner}</td>
+          <td class="p-3 font-mono text-xs">${t.dueDate}</td>
+          <td class="p-3 text-center"><span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-xs">דחוף</span></td>
+          <td class="p-3"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">${t.status}</span></td>
+        </tr>
+      `).join('');
+      document.getElementById('topUrgentBadge').textContent = globalTasks.length;
+    }
 
-      if (diff >= 7 && hasNotices === 'no') {
-        box.innerHTML = `
-          <div class="text-red-700 font-bold mb-1"><i class="fa-solid fa-circle-xmark"></i> סכנת התיישנות ממשית (חלפו ${diff} שנים ללא מנתקי מירוץ)</div>
-          מומלץ להוציא <b>חוות דעת משפטית לוועדת מחיקות</b> של העירייה לפי פקודת המיסים (גבייה) בשל שיהוי מנהלי וחוסר כדאיות כלכלית.
-        `;
-      } else {
-        box.innerHTML = `
-          <div class="text-emerald-700 font-bold mb-1"><i class="fa-solid fa-circle-check"></i> החוב בר גבייה</div>
-          מירוץ ההתיישנות נותק או שטרם חלפו 7 שנים מיום שנתגבשה עילת התביעה. ניתן להמשיך בהליכי הוצאה לפועל ותביעה.
-        `;
-      }
+    function openHubAction(name) {
+      alert(`נפתח מסך: "${name}" עבור ${document.getElementById('selectedAuthority').value}`);
+    }
+
+    function changeAuthority(name) {
+      alert(`הרשות שונתה ל: ${name}`);
     }
 
     function exportToCSV() {
-      let csv = "מספר תיק,סוג משימה,תיאור,באחריות,עדיפות,מועד אחרון,סטטוס\n";
-      tasks.forEach(t => {
-        csv += `"${t.caseNum}","${t.type}","${t.desc.replace(/"/g, '""')}","${t.owner}","${t.priority}","${t.dueDate}","${t.status}"\n`;
+      let csv = "שם משלם,ת\"ז,נכס,חוב,רשות\\n";
+      payersDatabase.forEach(p => {
+        csv += `"${p.name}","${p.idNum}","${p.propertyNum}","${p.totalDebt}","${p.authority}"\\n`;
       });
-      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
+      const blob = new Blob(["\\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `מעקב_משימות_תיקים_${new Date().toISOString().slice(0,10)}.csv`;
+      a.href = URL.createObjectURL(blob);
+      a.download = `מאגר_משלמים_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
     }
 
-    function exportBackup() {
-      const data = { tasks, cases, exportDate: new Date().toISOString() };
+    function exportBackupJSON() {
+      const data = { payers: payersDatabase, tasks: globalTasks };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `גיבוי_מערכת_תיקים_${new Date().toISOString().slice(0,10)}.json`;
+      a.download = `גיבוי_משלמים_${new Date().toISOString().slice(0,10)}.json`;
       a.click();
     }
 
-    function restoreBackup(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          const parsed = JSON.parse(evt.target.result);
-          if (parsed.tasks && parsed.cases) {
-            tasks = parsed.tasks;
-            cases = parsed.cases;
-            saveState();
-            alert('הנתונים שוחזרו בהצלחה!');
-          }
-        } catch(err) {
-          alert('שגיאה בקריאת קובץ הגיבוי');
-        }
-      };
-      reader.readAsText(file);
-    }
-
     window.addEventListener('DOMContentLoaded', () => {
-      renderAll();
+      loadStorage();
+      renderActivePayerCard();
+      renderGlobalTasks();
+      searchPayersList('');
     });
   </script>
 </body>
