@@ -724,4 +724,203 @@
             <td class="p-3 text-slate-600">${c.noticeDate || '-'}</td>
             <td class="p-3">${noticeStatus}</td>
             <td class="p-3"><span class="bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded text-xs">${c.stage}</span></td>
-            <td class="p-
+            <td class="p-3 text-center">
+              <button onclick="deleteCase('${c.id}')" class="text-slate-400 hover:text-red-600 p-1" title="מחיקת תיק"><i class="fa-regular fa-trash-can"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openTaskModal() {
+      document.getElementById('taskEditId').value = '';
+      document.getElementById('taskForm').reset();
+      document.getElementById('taskModal').classList.remove('hidden');
+    }
+    function closeTaskModal() {
+      document.getElementById('taskModal').classList.add('hidden');
+    }
+    function saveTask(e) {
+      e.preventDefault();
+      const newTask = {
+        id: 'T-' + Date.now(),
+        caseNum: document.getElementById('taskCaseNum').value,
+        type: document.getElementById('taskType').value,
+        desc: document.getElementById('taskDesc').value,
+        owner: document.getElementById('taskOwner').value,
+        priority: document.getElementById('taskPriority').value,
+        dueDate: document.getElementById('taskDueDate').value,
+        status: document.getElementById('taskStatus').value
+      };
+      tasks.unshift(newTask);
+      saveState();
+      closeTaskModal();
+    }
+    function updateTaskStatus(id, newStatus) {
+      const t = tasks.find(x => x.id === id);
+      if (t) {
+        t.status = newStatus;
+        saveState();
+      }
+    }
+    function deleteTask(id) {
+      if (confirm('האם למחוק משימה זו?')) {
+        tasks = tasks.filter(x => x.id !== id);
+        saveState();
+      }
+    }
+
+    function openCaseModal() {
+      document.getElementById('caseEditId').value = '';
+      document.getElementById('caseForm').reset();
+      document.getElementById('caseModal').classList.remove('hidden');
+    }
+    function closeCaseModal() {
+      document.getElementById('caseModal').classList.add('hidden');
+    }
+    function saveCase(e) {
+      e.preventDefault();
+      const newCase = {
+        id: 'C-' + Date.now(),
+        authority: document.getElementById('caseAuthority').value,
+        caseNum: document.getElementById('caseNum').value,
+        debtor: document.getElementById('caseDebtor').value,
+        role: document.getElementById('caseRole').value,
+        principal: document.getElementById('casePrincipal').value,
+        noticeDate: document.getElementById('caseNoticeDate').value,
+        stage: document.getElementById('caseStage').value
+      };
+      cases.unshift(newCase);
+      saveState();
+      closeCaseModal();
+    }
+    function deleteCase(id) {
+      if (confirm('האם למחוק תיק זה?')) {
+        cases = cases.filter(x => x.id !== id);
+        saveState();
+      }
+    }
+
+    function calculateWaterfall() {
+      const payment = parseFloat(document.getElementById('calcPayment').value) || 0;
+      let expenses = parseFloat(document.getElementById('calcExpenses').value) || 0;
+      let fee = parseFloat(document.getElementById('calcFee').value) || 0;
+      let interest = parseFloat(document.getElementById('calcInterest').value) || 0;
+      let principal = parseFloat(document.getElementById('calcPrincipal').value) || 0;
+
+      let remaining = payment;
+
+      const paidExpenses = Math.min(remaining, expenses);
+      remaining -= paidExpenses;
+
+      const paidFee = Math.min(remaining, fee);
+      remaining -= paidFee;
+
+      const paidInterest = Math.min(remaining, interest);
+      remaining -= paidInterest;
+
+      const paidPrincipal = Math.min(remaining, principal);
+      remaining -= paidPrincipal;
+
+      document.getElementById('resExpenses').textContent = '₪' + paidExpenses.toLocaleString();
+      document.getElementById('resFee').textContent = '₪' + paidFee.toLocaleString();
+      document.getElementById('resInterest').textContent = '₪' + paidInterest.toLocaleString();
+      document.getElementById('resPrincipal').textContent = '₪' + paidPrincipal.toLocaleString();
+      document.getElementById('resSurplus').textContent = remaining > 0 ? ('₪' + remaining.toLocaleString()) : '₪0';
+
+      const report = `לכבוד מחלקת גבייה / הוצאה לפועל: הרינו לדווח על קבלת תקבול בסך ₪${payment.toLocaleString()}. בהתאם לכללי הזקיפה: שכר טרחה ואגרות נפרעו בסך ₪${(paidExpenses + paidFee).toLocaleString()}, ריבית כוסתה בסך ₪${paidInterest.toLocaleString()}, ויש לבצע הפחתת קרן חוב בסך ₪${paidPrincipal.toLocaleString()}.`;
+      document.getElementById('resReportText').value = report;
+      document.getElementById('calcResults').classList.remove('hidden');
+    }
+
+    function copyReportText() {
+      const txt = document.getElementById('resReportText');
+      txt.select();
+      document.execCommand('copy');
+      alert('נוסח הדיווח הועתק ללוח בהצלחה!');
+    }
+
+    function updateLegalAdvice() {
+      const val = document.querySelector('input[name="cessationNotice"]:checked').value;
+      const box = document.getElementById('cessationAdvice');
+      if (val === 'no') {
+        box.innerHTML = `
+          <div class="text-emerald-700 font-bold mb-1"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> המלצה אופרטיבית: תביעה ביחד ולחוד</div>
+          הואיל והשוכר לא מסר הודעת חדילה בכתב כנדרש לפי סעיף 326 לפקודת העיריות, הבעלים והשוכר חבים בחוב יחד ולחוד. ניתן לפתוח תביעה / בקשת ביצוע כנגד שניהם.
+        `;
+      } else {
+        box.innerHTML = `
+          <div class="text-blue-700 font-bold mb-1"><i class="fa-solid fa-circle-info"></i> חובת הסבת חוב</div>
+          נמסרה הודעת חדילה כדין. יש לבצע הסבת חוב לבעלים או למחזיק החדש ממועד ההודעה בלבד. חובות שנוצרו טרם החדילה נשארים על השוכר הקודם.
+        `;
+      }
+    }
+
+    function updateLimitationAdvice() {
+      const year = parseInt(document.getElementById('debtYear').value) || 2026;
+      const hasNotices = document.getElementById('hasNotices').value;
+      const box = document.getElementById('limitationAdvice');
+      const currentYear = new Date().getFullYear();
+      const diff = currentYear - year;
+
+      if (diff >= 7 && hasNotices === 'no') {
+        box.innerHTML = `
+          <div class="text-red-700 font-bold mb-1"><i class="fa-solid fa-circle-xmark"></i> סכנת התיישנות ממשית (חלפו ${diff} שנים ללא מנתקי מירוץ)</div>
+          מומלץ להוציא <b>חוות דעת משפטית לוועדת מחיקות</b> של העירייה לפי פקודת המיסים (גבייה) בשל שיהוי מנהלי וחוסר כדאיות כלכלית.
+        `;
+      } else {
+        box.innerHTML = `
+          <div class="text-emerald-700 font-bold mb-1"><i class="fa-solid fa-circle-check"></i> החוב בר גבייה</div>
+          מירוץ ההתיישנות נותק או שטרם חלפו 7 שנים מיום שנתגבשה עילת התביעה. ניתן להמשיך בהליכי הוצאה לפועל ותביעה.
+        `;
+      }
+    }
+
+    function exportToCSV() {
+      let csv = "מספר תיק,סוג משימה,תיאור,באחריות,עדיפות,מועד אחרון,סטטוס\n";
+      tasks.forEach(t => {
+        csv += `"${t.caseNum}","${t.type}","${t.desc.replace(/"/g, '""')}","${t.owner}","${t.priority}","${t.dueDate}","${t.status}"\n`;
+      });
+      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `מעקב_משימות_תיקים_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    function exportBackup() {
+      const data = { tasks, cases, exportDate: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `גיבוי_מערכת_תיקים_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+    }
+
+    function restoreBackup(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (parsed.tasks && parsed.cases) {
+            tasks = parsed.tasks;
+            cases = parsed.cases;
+            saveState();
+            alert('הנתונים שוחזרו בהצלחה!');
+          }
+        } catch(err) {
+          alert('שגיאה בקריאת קובץ הגיבוי');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+    });
+  </script>
+</body>
+</html>
